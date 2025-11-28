@@ -1832,9 +1832,14 @@ async function searchMusic(term, category = 'musicTrack', limit = 50) {
         console.log(`🔍 智能搜索策略:`, searchConfig.searchTerms);
         
         // 并行搜索所有关键词
-        const searchPromises = searchConfig.searchTerms.map(searchTerm => 
-            performSingleSearch(searchTerm, category, Math.ceil(limit / searchConfig.searchTerms.length), searchConfig.country)
-        );
+        const searchPromises = searchConfig.searchTerms.map(async (searchTerm) => {
+            try {
+                return await performSingleSearch(searchTerm, category, Math.ceil(limit / searchConfig.searchTerms.length), searchConfig.country);
+            } catch (error) {
+                console.warn(`搜索 "${searchTerm}" 失败:`, error);
+                return [];
+            }
+        });
         
         const resultsArray = await Promise.allSettled(searchPromises);
         
@@ -1856,6 +1861,18 @@ async function searchMusic(term, category = 'musicTrack', limit = 50) {
             showError('未找到相关结果，请尝试其他搜索词');
             return [];
         }
+        
+        // 对结果进行智能排序（热门度、匹配度）
+        allResults = smartSortResults(allResults, term);
+        
+        return allResults.slice(0, limit);
+        
+    } catch (error) {
+        console.error('搜索失败:', error);
+        showError('搜索失败，请检查网络连接或稍后重试');
+        return [];
+    }
+}
         
         // 对结果进行智能排序（热门度、匹配度）
         allResults = smartSortResults(allResults, term);
@@ -2029,8 +2046,9 @@ async function loadChart(category) {
     currentSongs = await searchMusic('popular', 'musicTrack', 50);
     
     // 如果结果不够，使用备用搜索词
-    if (currentSongs.length < 20) {
-        console.log('🔁 结果较少，使用备用搜索词...');
+if (currentSongs.length < 20) {
+    console.log('🔁 结果较少，使用备用搜索词...');
+    try {
         const backupResults = await searchMusic('hits', 'musicTrack', 30);
         const existingIds = new Set(currentSongs.map(song => song.id));
         backupResults.forEach(song => {
@@ -2038,7 +2056,10 @@ async function loadChart(category) {
                 currentSongs.push(song);
             }
         });
+    } catch (error) {
+        console.warn('备用搜索失败:', error);
     }
+}
     
     renderSongs(currentSongs);
     
