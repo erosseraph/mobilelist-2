@@ -14,7 +14,103 @@
     <meta name="apple-mobile-web-app-title" content="歌厅定制">
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
+   <!-- 内联 PWA Manifest 配置 -->
+<script type="application/manifest+json">
+{
+  "name": "定制你的专属歌厅",
+  "short_name": "歌厅定制",
+  "description": "专业歌厅定制服务，打造您的专属音乐空间",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a2a6c",
+  "theme_color": "#1a2a6c",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "zh-CN",
+  "categories": ["music", "entertainment", "shopping"],
+  
+  "icons": [
+    {
+      "src": "/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+</script>
+
+<!-- 图标加载备用方案 -->
+<script>
+// 动态加载图标，如果失败则使用备用方案
+document.addEventListener('DOMContentLoaded', function() {
+    const icons = [
+        '/icons/icon-72.png',
+        '/icons/icon-96.png', 
+        '/icons/icon-128.png',
+        '/icons/icon-144.png',
+        '/icons/icon-152.png',
+        '/icons/icon-192.png',
+        '/icons/icon-384.png',
+        '/icons/icon-512.png'
+    ];
+    
+    // 预加载图标并检测是否可用
+    icons.forEach(iconPath => {
+        const img = new Image();
+        img.onerror = function() {
+            console.warn('图标加载失败:', iconPath);
+            // 可以在这里添加备用图标逻辑
+        };
+        img.src = iconPath;
+    });
+});
+</script>
+    
+<!-- 可选：保留外部 manifest 链接作为备用 -->
+<link rel="manifest" href="/manifest.json" id="external-manifest">
     
     <!-- 苹果 Touch 图标 -->
     <link rel="apple-touch-icon" href="icons/icon-192.png">
