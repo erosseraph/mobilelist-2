@@ -1769,15 +1769,57 @@
         const stopBtn = document.getElementById('stop-btn');
         
         function initKaraoke() {
-            setupEventListeners();
-            initPageNavigation();
-            initPricingButtons();
-            initOrderFunctions();
-            updatePlaylistCount();
-            loadChart('chinese-pop');
-            initMobileFeatures();
-        }
-        
+    console.log('🎵 初始化点歌系统...');
+    
+    setupEventListeners();
+    initPageNavigation();
+    initPricingButtons();
+    initOrderFunctions();
+    updatePlaylistCount();
+    loadChart('chinese-pop');
+    initMobileFeatures();
+    
+    // 紧急修复所有按钮
+    emergencyFixAllButtons();
+    
+    console.log('✅ 点歌系统初始化完成');
+}
+        // ==================== 紧急修复：手动绑定所有按钮事件 ====================
+function emergencyFixAllButtons() {
+    console.log('🚨 执行紧急按钮修复...');
+    
+    // 修复导航按钮
+    const karaokeNav = document.getElementById('karaoke-nav');
+    const pricingNav = document.getElementById('pricing-nav');
+    
+    if (karaokeNav) {
+        karaokeNav.onclick = function() {
+            console.log('🎵 切换到点歌页面');
+            showPage('karaoke');
+            setActiveNav(this);
+        };
+    }
+    
+    if (pricingNav) {
+        pricingNav.onclick = function() {
+            console.log('💰 切换到价格页面');
+            showPage('pricing');
+            setActiveNav(this);
+        };
+    }
+    
+    // 修复排行榜按钮
+    const chartButtons = document.querySelectorAll('.chart-category');
+    chartButtons.forEach(btn => {
+        btn.onclick = function() {
+            const category = this.getAttribute('data-category');
+            console.log(`📊 加载排行榜: ${category}`);
+            loadChart(category);
+        };
+    });
+    
+    console.log('✅ 紧急按钮修复完成');
+}
         // ==================== 改进的音乐搜索功能 ====================
         async function searchMusic(term, category = 'musicTrack', limit = 50) {
             try {
@@ -2687,11 +2729,17 @@
             }
         }
 
-        // ==================== 初始化应用 ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeFirebase();
-            initKaraoke();
-        });
+       // ==================== 初始化应用 ====================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM 加载完成，开始初始化应用...');
+    
+    initializeFirebase();
+    
+    // 添加短暂延迟确保所有元素都已渲染
+    setTimeout(() => {
+        initKaraoke();
+    }, 100);
+});
     </script>
 </body>
 </html>
