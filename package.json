@@ -1,0 +1,12 @@
+{
+  "name": "mobilelist-2",
+  "version": "1.0.0",
+  "description": "定制你的专属歌厅 - KTV歌单定制系统",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "build": "echo 'No build process needed for static site'"
+  },
+  "keywords": ["karaoke", "music", "pwa", "firebase"],
+  "author": "erosseraph",
+  "license": "MIT"
+}
