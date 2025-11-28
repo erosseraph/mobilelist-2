@@ -1820,167 +1820,260 @@ function emergencyFixAllButtons() {
     
     console.log('✅ 紧急按钮修复完成');
 }
-        // ==================== 改进的音乐搜索功能 ====================
-        async function searchMusic(term, category = 'musicTrack', limit = 50) {
-            try {
-                showLoading('正在搜索...');
-                
-                // 备用搜索词策略
-                let searchTerms = [term];
-                
-                // 如果是中文搜索，添加英文备用词
-                if (/[\u4e00-\u9fa5]/.test(term)) {
-                    // 常见歌手英文名映射
-                    const artistMap = {
-                        '周杰伦': 'Jay Chou',
-                        '林俊杰': 'JJ Lin', 
-                        '邓紫棋': 'G.E.M.',
-                        '薛之谦': 'Joker Xue',
-                        '王力宏': 'Leehom Wang',
-                        '陈奕迅': 'Eason Chan',
-                        '张惠妹': 'A-Mei',
-                        '蔡依林': 'Jolin Tsai'
-                    };
-                    
-                    // 检查是否包含特定歌手
-                    for (const [chinese, english] of Object.entries(artistMap)) {
-                        if (term.includes(chinese)) {
-                            searchTerms.push(english);
-                            break;
-                        }
+        // ==================== 智能音乐搜索功能 ====================
+async function searchMusic(term, category = 'musicTrack', limit = 50) {
+    try {
+        showLoading('正在搜索热门歌曲...');
+        
+        // 智能搜索词生成 - 针对不同分类使用不同策略
+        const searchConfig = getSearchConfig(term, category);
+        let allResults = [];
+        
+        console.log(`🔍 智能搜索策略:`, searchConfig.searchTerms);
+        
+        // 并行搜索所有关键词
+        const searchPromises = searchConfig.searchTerms.map(searchTerm => 
+            performSingleSearch(searchTerm, category, Math.ceil(limit / searchConfig.searchTerms.length), searchConfig.country)
+        );
+        
+        const resultsArray = await Promise.allSettled(searchPromises);
+        
+        // 合并所有结果
+        resultsArray.forEach(result => {
+            if (result.status === 'fulfilled' && result.value) {
+                const existingIds = new Set(allResults.map(song => song.id));
+                result.value.forEach(song => {
+                    if (!existingIds.has(song.id)) {
+                        allResults.push(song);
                     }
-                    
-                    // 添加通用英文关键词
-                    if (term.includes('华语') || term.includes('中文')) {
-                        searchTerms.push('chinese pop');
-                        searchTerms.push('mandopop');
-                    }
-                }
-                
-                let allResults = [];
-                
-                // 尝试多个搜索词
-                for (const searchTerm of searchTerms) {
-                    if (allResults.length >= limit) break;
-                    
-                    const encodedTerm = encodeURIComponent(searchTerm);
-                    const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=${category}&limit=${limit}&country=CN&lang=zh_cn`;
-                    
-                    console.log(`🔍 搜索: ${searchTerm}, URL: ${url}`);
-                    
-                    try {
-                        const response = await fetch(url);
-                        if (!response.ok) continue;
-                        
-                        const data = await response.json();
-                        console.log(`📊 搜索结果: ${data.resultCount} 条`);
-                        
-                        if (data.resultCount === 0) continue;
-                        
-                        const filteredResults = data.results.map(track => ({
-                            id: track.trackId || Math.random().toString(36).substr(2, 9),
-                            title: track.trackName || '未知歌曲',
-                            artist: track.artistName || '未知歌手',
-                            album: track.collectionName || '未知专辑',
-                            duration: track.trackTimeMillis,
-                            previewUrl: track.previewUrl,
-                            artwork: track.artworkUrl100
-                        })).filter(track => {
-                            // 更宽松的过滤条件
-                            return track.previewUrl && 
-                                   track.title && 
-                                   track.artist &&
-                                   !track.title.toLowerCase().includes('karaoke') &&
-                                   !track.artist.toLowerCase().includes('karaoke');
-                        });
-                        
-                        // 去重并合并结果
-                        const existingIds = new Set(allResults.map(song => song.id));
-                        filteredResults.forEach(song => {
-                            if (!existingIds.has(song.id)) {
-                                allResults.push(song);
-                            }
-                        });
-                        
-                    } catch (error) {
-                        console.warn(`搜索词 "${searchTerm}" 失败:`, error);
-                        continue;
-                    }
-                }
-                
-                console.log(`🎵 总过滤后结果: ${allResults.length} 首歌曲`);
-                
-                if (allResults.length === 0) {
-                    showError('未找到相关结果，请尝试其他搜索词');
-                    return [];
-                }
-                
-                return allResults.slice(0, limit);
-                
-            } catch (error) {
-                console.error('搜索失败:', error);
-                showError('搜索失败，请检查网络连接或稍后重试');
-                return [];
+                });
             }
+        });
+        
+        console.log(`🎵 总搜索结果: ${allResults.length} 首歌曲`);
+        
+        if (allResults.length === 0) {
+            showError('未找到相关结果，请尝试其他搜索词');
+            return [];
         }
         
+        // 对结果进行智能排序（热门度、匹配度）
+        allResults = smartSortResults(allResults, term);
+        
+        return allResults.slice(0, limit);
+        
+    } catch (error) {
+        console.error('搜索失败:', error);
+        showError('搜索失败，请检查网络连接或稍后重试');
+        return [];
+    }
+}
+
+        // 获取智能搜索配置
+function getSearchConfig(term, category) {
+    const configs = {
+        'chinese-pop': {
+            searchTerms: [
+                '', // 空搜索获取全球热门
+                'popular music',
+                'top hits',
+                'chart music',
+                'hot 100',
+                'trending now'
+            ],
+            country: 'US',
+            description: '全球热门华语歌曲'
+        },
+        'western-pop': {
+            searchTerms: [
+                '',
+                'billboard hot 100',
+                'spotify top 50',
+                'popular songs',
+                'top 40',
+                'viral hits'
+            ],
+            country: 'US',
+            description: '欧美流行热歌'
+        },
+        'chinese-dj': {
+            searchTerms: [
+                'edm',
+                'dance music',
+                'electronic',
+                'remix',
+                'club music',
+                'beatport'
+            ],
+            country: 'US',
+            description: '热门电子音乐'
+        }
+    };
+    
+    return configs[category] || {
+        searchTerms: [term],
+        country: 'US',
+        description: '自定义搜索'
+    };
+}
+
+// 执行单个搜索
+async function performSingleSearch(term, category, limit, country = 'US') {
+    try {
+        let url;
+        
+        if (term === '') {
+            // 空搜索获取热门歌曲
+            url = `https://itunes.apple.com/search?term=popular&entity=${category}&limit=${limit}&country=${country}&lang=en_us`;
+        } else {
+            const encodedTerm = encodeURIComponent(term);
+            url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=${category}&limit=${limit}&country=${country}&lang=en_us`;
+        }
+        
+        console.log(`🔍 搜索请求: ${url}`);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.warn(`搜索请求失败: ${response.status}`);
+            return [];
+        }
+        
+        const data = await response.json();
+        console.log(`📊 搜索结果: ${data.resultCount} 条`);
+        
+        if (data.resultCount === 0) return [];
+        
+        return data.results.map(track => ({
+            id: track.trackId || Math.random().toString(36).substr(2, 9),
+            title: track.trackName || '未知歌曲',
+            artist: track.artistName || '未知歌手',
+            album: track.collectionName || '未知专辑',
+            duration: track.trackTimeMillis,
+            previewUrl: track.previewUrl,
+            artwork: track.artworkUrl100?.replace('100x100', '300x300') || track.artworkUrl100,
+            popularity: track.trackNumber || Math.random() // 模拟热度
+        })).filter(track => {
+            // 更宽松的过滤条件
+            return track.previewUrl && 
+                   track.title && 
+                   track.artist &&
+                   !track.title.toLowerCase().includes('karaoke') &&
+                   !track.artist.toLowerCase().includes('karaoke');
+        });
+        
+    } catch (error) {
+        console.warn(`搜索 "${term}" 失败:`, error);
+        return [];
+    }
+}
+
+// 智能排序结果
+function smartSortResults(results, originalTerm) {
+    return results.sort((a, b) => {
+        // 1. 优先显示有封面的歌曲
+        const coverScore = (b.artwork ? 1 : 0) - (a.artwork ? 1 : 0);
+        if (coverScore !== 0) return coverScore;
+        
+        // 2. 按标题匹配度排序
+        const titleMatchA = a.title.toLowerCase().includes(originalTerm.toLowerCase()) ? 1 : 0;
+        const titleMatchB = b.title.toLowerCase().includes(originalTerm.toLowerCase()) ? 1 : 0;
+        if (titleMatchA !== titleMatchB) return titleMatchB - titleMatchA;
+        
+        // 3. 按艺术家匹配度排序
+        const artistMatchA = a.artist.toLowerCase().includes(originalTerm.toLowerCase()) ? 1 : 0;
+        const artistMatchB = b.artist.toLowerCase().includes(originalTerm.toLowerCase()) ? 1 : 0;
+        if (artistMatchA !== artistMatchB) return artistMatchB - artistMatchA;
+        
+        // 4. 按热度排序（模拟）
+        return (b.popularity || 0) - (a.popularity || 0);
+    });
+}
         // ==================== 改进的排行榜加载 ====================
-        async function loadChart(category) {
-            isSearchResultsView = false;
-            let searchTerms = [];
-            let entityType = 'musicTrack';
-            let limit = 50;
-            
-            // 多关键词搜索策略
-            switch(category) {
-                case 'chinese-pop':
-                    searchTerms = [
-                        '周杰伦',
-                        '林俊杰', 
-                        '邓紫棋',
-                        '薛之谦',
-                        '华语流行',
-                        'mandopop',
-                        'chinese pop'
-                    ];
-                    break;
-                case 'western-pop':
-                    searchTerms = [
-                        'Taylor Swift',
-                        'Ed Sheeran',
-                        'Ariana Grande',
-                        'Justin Bieber',
-                        'Billie Eilish',
-                        'pop music',
-                        'top 40'
-                    ];
-                    break;
-                case 'chinese-dj':
-                    searchTerms = [
-                        '中文DJ',
-                        '电音',
-                        'EDM',
-                        'remix',
-                        '电子音乐'
-                    ];
-                    entityType = 'musicTrack';
-                    limit = 40;
-                    break;
-                case 'chinese-artists':
-                    renderArtistsList([
-                        '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', 
-                        '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿',
-                        '五月天', '张学友', '刘德华', '王菲', '张杰'
-                    ]);
-                    return;
-                case 'western-artists':
-                    renderArtistsList([
-                        'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
-                        'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars'
-                    ]);
-                    return;
+async function loadChart(category) {
+    isSearchResultsView = false;
+    
+    const chartConfig = {
+        'chinese-pop': {
+            name: '华语流行',
+            description: '热门华语歌曲榜'
+        },
+        'western-pop': {
+            name: '欧美流行', 
+            description: '全球热门欧美歌曲'
+        },
+        'chinese-dj': {
+            name: '中文DJ',
+            description: '热门电子舞曲'
+        },
+        'chinese-artists': {
+            type: 'artists',
+            artists: ['周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿']
+        },
+        'western-artists': {
+            type: 'artists', 
+            artists: ['Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish', 'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars']
+        }
+    };
+    
+    const config = chartConfig[category];
+    if (!config) return;
+    
+    console.log(`📊 加载 ${config.name} 排行榜...`);
+    
+    if (config.type === 'artists') {
+        renderArtistsList(config.artists);
+        return;
+    }
+    
+    // 使用智能搜索获取热门歌曲
+    currentSongs = await searchMusic('popular', 'musicTrack', 50);
+    
+    // 如果结果不够，使用备用搜索词
+    if (currentSongs.length < 20) {
+        console.log('🔁 结果较少，使用备用搜索词...');
+        const backupResults = await searchMusic('hits', 'musicTrack', 30);
+        const existingIds = new Set(currentSongs.map(song => song.id));
+        backupResults.forEach(song => {
+            if (!existingIds.has(song.id)) {
+                currentSongs.push(song);
             }
-            
+        });
+    }
+    
+    renderSongs(currentSongs);
+    
+    // 更新页面标题显示当前排行榜
+    updateChartTitle(config.name, config.description);
+    
+    // 更新活跃状态
+    document.querySelectorAll('.chart-category').forEach(chart => {
+        chart.classList.remove('active');
+    });
+    const activeChart = document.querySelector(`[data-category="${category}"]`);
+    if (activeChart) activeChart.classList.add('active');
+}
+
+        // 更新排行榜标题
+function updateChartTitle(name, description) {
+    const songsContainer = document.getElementById('songs-container');
+    if (!songsContainer) return;
+    
+    const existingTitle = songsContainer.querySelector('.chart-title');
+    if (existingTitle) {
+        existingTitle.remove();
+    }
+    
+    const titleElement = document.createElement('div');
+    titleElement.className = 'chart-title';
+    titleElement.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+            <h3 style="margin: 0 0 5px 0; color: white;">${name}</h3>
+            <p style="margin: 0; opacity: 0.8; font-size: 0.9rem;">${description}</p>
+        </div>
+    `;
+    
+    songsContainer.insertBefore(titleElement, songsContainer.firstChild);
+}
             // 使用第一个搜索词进行初始搜索
             currentSongs = await searchMusic(searchTerms[0], entityType, limit);
             
