@@ -1587,29 +1587,62 @@
         }
         
         // ==================== 改进的音乐搜索功能 ====================
-        async function searchMusic(term, category = 'musicTrack', limit = 50) {
+async function searchMusic(term, category = 'musicTrack', limit = 50) {
+    try {
+        showLoading('正在搜索...');
+        
+        // 备用搜索词策略
+        let searchTerms = [term];
+        
+        // 如果是中文搜索，添加英文备用词
+        if (/[\u4e00-\u9fa5]/.test(term)) {
+            // 常见歌手英文名映射
+            const artistMap = {
+                '周杰伦': 'Jay Chou',
+                '林俊杰': 'JJ Lin', 
+                '邓紫棋': 'G.E.M.',
+                '薛之谦': 'Joker Xue',
+                '王力宏': 'Leehom Wang',
+                '陈奕迅': 'Eason Chan',
+                '张惠妹': 'A-Mei',
+                '蔡依林': 'Jolin Tsai'
+            };
+            
+            // 检查是否包含特定歌手
+            for (const [chinese, english] of Object.entries(artistMap)) {
+                if (term.includes(chinese)) {
+                    searchTerms.push(english);
+                    break;
+                }
+            }
+            
+            // 添加通用英文关键词
+            if (term.includes('华语') || term.includes('中文')) {
+                searchTerms.push('chinese pop');
+                searchTerms.push('mandopop');
+            }
+        }
+        
+        let allResults = [];
+        
+        // 尝试多个搜索词
+        for (const searchTerm of searchTerms) {
+            if (allResults.length >= limit) break;
+            
+            const encodedTerm = encodeURIComponent(searchTerm);
+            const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=${category}&limit=${limit}&country=CN&lang=zh_cn`;
+            
+            console.log(`🔍 搜索: ${searchTerm}, URL: ${url}`);
+            
             try {
-                showLoading('正在搜索...');
-                
-                // 改进搜索URL，使用中文关键词和更精确的参数
-                const encodedTerm = encodeURIComponent(term);
-                const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=${category}&limit=${limit}&country=CN&lang=zh_cn`;
-                
-                console.log(`🔍 搜索: ${term}, URL: ${url}`);
-                
                 const response = await fetch(url);
-                
-                if (!response.ok) throw new Error('网络请求失败');
+                if (!response.ok) continue;
                 
                 const data = await response.json();
                 console.log(`📊 搜索结果: ${data.resultCount} 条`);
                 
-                if (data.resultCount === 0) {
-                    showError('未找到相关结果');
-                    return [];
-                }
+                if (data.resultCount === 0) continue;
                 
-                // 改进结果过滤
                 const filteredResults = data.results.map(track => ({
                     id: track.trackId || Math.random().toString(36).substr(2, 9),
                     title: track.trackName || '未知歌曲',
@@ -1619,94 +1652,128 @@
                     previewUrl: track.previewUrl,
                     artwork: track.artworkUrl100
                 })).filter(track => {
-                    // 过滤掉没有预览的歌曲和明显不相关的内容
+                    // 更宽松的过滤条件
                     return track.previewUrl && 
-                           !track.title.toLowerCase().includes('instrumental') &&
+                           track.title && 
+                           track.artist &&
                            !track.title.toLowerCase().includes('karaoke') &&
-                           !track.artist.toLowerCase().includes('instrumental');
+                           !track.artist.toLowerCase().includes('karaoke');
                 });
                 
-                console.log(`🎵 过滤后结果: ${filteredResults.length} 首歌曲`);
-                return filteredResults;
+                // 去重并合并结果
+                const existingIds = new Set(allResults.map(song => song.id));
+                filteredResults.forEach(song => {
+                    if (!existingIds.has(song.id)) {
+                        allResults.push(song);
+                    }
+                });
                 
             } catch (error) {
-                console.error('搜索失败:', error);
-                showError('搜索失败，请检查网络连接或稍后重试');
-                return [];
+                console.warn(`搜索词 "${searchTerm}" 失败:`, error);
+                continue;
             }
         }
         
-        // ==================== 改进的排行榜加载 ====================
-        async function loadChart(category) {
-            isSearchResultsView = false;
-            let searchTerm = '';
-            let entityType = 'musicTrack';
-            let limit = 50;
-            
-            // 改进搜索策略，使用更精确的中文关键词
-            switch(category) {
-                case 'chinese-pop':
-                    searchTerm = '华语流行 周杰伦 林俊杰 邓紫棋 薛之谦 王力宏 华语金曲';
-                    break;
-                case 'western-pop':
-                    searchTerm = 'pop Taylor+Swift Ed+Sheeran Ariana+Grande Justin+Bieber Billie+Eilish';
-                    break;
-                case 'chinese-dj':
-                    searchTerm = '中文DJ 混音 Remix 抖音热歌 电音 夜店';
-                    entityType = 'musicTrack';
-                    limit = 40;
-                    break;
-                case 'chinese-artists':
-                    renderArtistsList([
-                        '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', 
-                        '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿',
-                        '五月天', '张学友', '刘德华', '王菲', '张杰'
-                    ]);
-                    return;
-                case 'western-artists':
-                    renderArtistsList([
-                        'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
-                        'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars'
-                    ]);
-                    return;
-            }
-            
-            currentSongs = await searchMusic(searchTerm, entityType, limit);
-            
-            // 如果结果太少，尝试备用搜索词
-            if (currentSongs.length < 10) {
-                console.log('🔁 结果较少，尝试备用搜索词...');
-                let backupSearchTerm = '';
-                
-                switch(category) {
-                    case 'chinese-pop':
-                        backupSearchTerm = '中文歌曲 华语音乐 流行歌曲';
-                        break;
-                    case 'chinese-dj':
-                        backupSearchTerm = '中文舞曲 电子音乐 派对歌曲';
-                        break;
-                }
-                
-                if (backupSearchTerm) {
-                    const backupResults = await searchMusic(backupSearchTerm, entityType, 20);
-                    // 合并结果，去重
-                    const existingIds = new Set(currentSongs.map(song => song.id));
-                    backupResults.forEach(song => {
-                        if (!existingIds.has(song.id)) {
-                            currentSongs.push(song);
-                        }
-                    });
-                }
-            }
-            
-            renderSongs(currentSongs);
-            
-            document.querySelectorAll('.chart-category').forEach(chart => {
-                chart.classList.remove('active');
-            });
-            const activeChart = document.querySelector(`[data-category="${category}"]`);
-            if (activeChart) activeChart.classList.add('active');
+        console.log(`🎵 总过滤后结果: ${allResults.length} 首歌曲`);
+        
+        if (allResults.length === 0) {
+            showError('未找到相关结果，请尝试其他搜索词');
+            return [];
         }
+        
+        return allResults.slice(0, limit);
+        
+    } catch (error) {
+        console.error('搜索失败:', error);
+        showError('搜索失败，请检查网络连接或稍后重试');
+        return [];
+    }
+}
+        
+        // ==================== 改进的排行榜加载 ====================
+async function loadChart(category) {
+    isSearchResultsView = false;
+    let searchTerms = [];
+    let entityType = 'musicTrack';
+    let limit = 50;
+    
+    // 多关键词搜索策略
+    switch(category) {
+        case 'chinese-pop':
+            searchTerms = [
+                '周杰伦',
+                '林俊杰', 
+                '邓紫棋',
+                '薛之谦',
+                '华语流行',
+                'mandopop',
+                'chinese pop'
+            ];
+            break;
+        case 'western-pop':
+            searchTerms = [
+                'Taylor Swift',
+                'Ed Sheeran',
+                'Ariana Grande',
+                'Justin Bieber',
+                'Billie Eilish',
+                'pop music',
+                'top 40'
+            ];
+            break;
+        case 'chinese-dj':
+            searchTerms = [
+                '中文DJ',
+                '电音',
+                'EDM',
+                'remix',
+                '电子音乐'
+            ];
+            entityType = 'musicTrack';
+            limit = 40;
+            break;
+        case 'chinese-artists':
+            renderArtistsList([
+                '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', 
+                '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿',
+                '五月天', '张学友', '刘德华', '王菲', '张杰'
+            ]);
+            return;
+        case 'western-artists':
+            renderArtistsList([
+                'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
+                'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars'
+            ]);
+            return;
+    }
+    
+    // 使用第一个搜索词进行初始搜索
+    currentSongs = await searchMusic(searchTerms[0], entityType, limit);
+    
+    // 如果结果不够，尝试其他搜索词
+    if (currentSongs.length < 15 && searchTerms.length > 1) {
+        console.log('🔁 结果较少，尝试其他搜索词...');
+        for (let i = 1; i < searchTerms.length; i++) {
+            if (currentSongs.length >= 30) break;
+            
+            const backupResults = await searchMusic(searchTerms[i], entityType, 20);
+            const existingIds = new Set(currentSongs.map(song => song.id));
+            backupResults.forEach(song => {
+                if (!existingIds.has(song.id)) {
+                    currentSongs.push(song);
+                }
+            });
+        }
+    }
+    
+    renderSongs(currentSongs);
+    
+    document.querySelectorAll('.chart-category').forEach(chart => {
+        chart.classList.remove('active');
+    });
+    const activeChart = document.querySelector(`[data-category="${category}"]`);
+    if (activeChart) activeChart.classList.add('active');
+}
         
         function renderArtistsList(artists) {
             if (!songsContainer) return;
