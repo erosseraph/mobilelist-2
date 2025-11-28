@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歌厅定制 - 管理面板</title>
+    
+    <!-- 配置加载 -->
+    <script src="firebase-config.js"></script>
+    <script src="config.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            color: #333;
+            padding: 20px;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .admin-title {
+            font-size: 2rem;
+            color: #1a2a6c;
+        }
+        
+        .admin-nav {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .filter-select, .search-input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background: white;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .orders-table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 1000px;
+        }
+        
+        .orders-table th {
+            background: #1a2a6c;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .orders-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .orders-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background: #1a2a6c;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            color: #1a2a6c;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+        
+        .close-btn:hover {
+            background: rgba(0,0,0,0.1);
+            color: #333;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1a2a6c;
+        }
+        
+        .info-card h3 {
+            margin-bottom: 10px;
+            color: #1a2a6c;
+            font-size: 1.1rem;
+        }
+        
+        .songs-section {
+            margin: 20px 0;
+        }
+        
+        .songs-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .songs-search {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 250px;
+        }
+        
+        .songs-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background: #fafafa;
+        }
+        
+        .song-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .song-item:hover {
+            background: #e9ecef;
+        }
+        
+        .song-item:last-child {
+            border-bottom: none;
+        }
+        
+        .song-info {
+            flex: 1;
+        }
+        
+        .song-title {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .song-artist {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .song-duration {
+            color: #999;
+            font-size: 0.8rem;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            background: #1a2a6c;
+            color: white;
+            border-color: #1a2a6c;
+        }
+        
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            margin: 0 10px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .customer-contact {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .contact-icon {
+            width: 16px;
+            text-align: center;
+        }
+        
+        .large-playlist-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin: 10px 0;
+            color: #856404;
+        }
+        
+        .huge-playlist-warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 10px 15px;
+            margin: 10px 0;
+            color: #721c24;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        
+        .login-title {
+            color: #1a2a6c;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: #0d1a4a;
+        }
+        
+        .login-error {
+            color: #dc3545;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                min-width: 100%;
+            }
+            
+            .songs-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .songs-search {
+                width: 100%;
+            }
+            
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录界面 -->
+    <div class="login-container" id="login-container">
+        <h1 class="login-title">🎤 管理面板登录</h1>
+        <input type="password" class="login-input" id="admin-password" placeholder="请输入管理员密码" autocomplete="off">
+        <button class="login-btn" onclick="checkAdminPassword()">登录</button>
+        <div class="login-error" id="login-error">密码错误，请重试</div>
+    </div>
+
+    <!-- 主管理界面 -->
+    <div class="admin-container" id="admin-container" style="display: none;">
+        <div class="admin-header">
+            <h1 class="admin-title">🎤 歌厅定制 - 管理面板</h1>
+            <div class="admin-nav">
+                <a href="index.html" class="btn btn-primary">返回主应用</a>
+                <button class="btn btn-success" onclick="refreshData()">🔄 刷新数据</button>
+                <button class="btn btn-info" onclick="exportAllData()">📊 导出数据</button>
+                <button class="btn btn-warning" onclick="logoutAdmin()">🚪 退出管理</button>
+            </div>
+        </div>
+        
+        <div class="admin-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-orders">0</div>
+                <div class="stat-label">总订单数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pending-orders">0</div>
+                <div class="stat-label">待处理订单</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-songs">0</div>
+                <div class="stat-label">总歌曲数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="total-revenue">RM 0</div>
+                <div class="stat-label">总收入</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="large-playlists">0</div>
+                <div class="stat-label">大型歌单(200+)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="huge-playlists">0</div>
+                <div class="stat-label">超大型歌单(500+)</div>
+            </div>
+        </div>
+        
+        <div class="filters">
+            <select class="filter-select" id="status-filter" onchange="filterOrders()">
+                <option value="">所有状态</option>
+                <option value="pending">待确认</option>
+                <option value="confirmed">已确认</option>
+                <option value="completed">已完成</option>
+                <option value="cancelled">已取消</option>
+            </select>
+            
+            <select class="filter-select" id="package-filter" onchange="filterOrders()">
+                <option value="">所有配套</option>
+                <option value="基础版">基础版</option>
+                <option value="标准版">标准版</option>
+                <option value="进阶版">进阶版</option>
+                <option value="豪华版">豪华版</option>
+                <option value="专业版">专业版</option>
+                <option value="旗舰版">旗舰版</option>
+                <option value="至尊版">至尊版</option>
+                <option value="自定义版">自定义版</option>
+            </select>
+            
+            <select class="filter-select" id="size-filter" onchange="filterOrders()">
+                <option value="">所有大小</option>
+                <option value="small">小型(1-50首)</option>
+                <option value="medium">中型(51-200首)</option>
+                <option value="large">大型(201-500首)</option>
+                <option value="huge">超大型(500+首)</option>
+            </select>
+            
+            <input type="text" class="search-input" id="search-input" placeholder="搜索客户姓名、电话、邮箱或订单号..." onkeyup="filterOrders()">
+        </div>
+        
+        <div class="orders-table-container">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>订单号</th>
+                        <th>客户信息</th>
+                        <th>配套</th>
+                        <th>歌曲数</th>
+                        <th>总金额</th>
+                        <th>状态</th>
+                        <th>下单时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-tbody">
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div>📊</div>
+                            <div>正在加载订单数据...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- 订单详情模态框 -->
+    <div class="modal" id="order-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">订单详情</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="order-details">
+                <!-- 订单详情将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 歌曲列表模态框 -->
+    <div class="modal" id="songs-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">歌单详情</h2>
+                <button class="close-btn" onclick="closeSongsModal()">&times;</button>
+            </div>
+            <div id="songs-modal-content">
+                <!-- 歌曲列表将通过JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // ==================== 管理员配置 ====================
+        const ADMIN_PASSWORD = ADMIN_CONFIG.password;
+        const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2小时
+
+        // ==================== 管理员认证 ====================
+        function checkAdminPassword() {
+            const passwordInput = document.getElementById('admin-password');
+            const errorElement = document.getElementById('login-error');
+            const password = passwordInput.value.trim();
+            
+            if (password === ADMIN_PASSWORD) {
+                // 登录成功
+                const sessionData = {
+                    loggedIn: true,
+                    timestamp: new Date().getTime()
+                };
+                localStorage.setItem('adminSession', JSON.stringify(sessionData));
+                
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('admin-container').style.display = 'block';
+                
+                initializeFirebase();
+            } else {
+                // 登录失败
+                errorElement.style.display = 'block';
+                passwordInput.value = '';
+                passwordInput.focus();
+                
+                // 3秒后隐藏错误信息
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function checkAdminSession() {
+            const sessionData = localStorage.getItem('adminSession');
+            if (sessionData) {
+                const session = JSON.parse(sessionData);
+                const currentTime = new Date().getTime();
+                
+                if (session.loggedIn && (currentTime - session.timestamp) < SESSION_DURATION) {
+                    // 会话有效
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('admin-container').style.display = 'block';
+                    initializeFirebase();
+                    return true;
+                } else {
+                    // 会话过期
+                    localStorage.removeItem('adminSession');
+                }
+            }
+            return false;
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('adminSession');
+            location.reload();
+        }
+
+        // 监听回车键
+        document.getElementById('admin-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAdminPassword();
+            }
+        });
+
+        // ==================== Firebase 初始化 ====================
+        let firebaseApp, firestore;
+        
+        function initializeFirebase() {
+            try {
+                // 使用环境变量配置
+                const firebaseConfig = getFirebaseConfig();
+                console.log('🔧 Firebase 配置:', firebaseConfig);
+                
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                firestore = firebaseApp.firestore();
+                console.log('✅ Firebase 初始化成功');
+                
+                loadOrders();
+                setupRealtimeListener();
+            } catch (error) {
+                console.error('❌ Firebase 初始化失败:', error);
+                showError('Firebase 初始化失败，请检查控制台');
+            }
+        }
+
+        // ==================== 数据管理 ====================
+        let allOrders = [];
+        let filteredOrders = [];
+        
+        async function loadOrders() {
+            try {
+                showLoading();
+                const snapshot = await firestore.collection('orders')
+                    .orderBy('orderDate', 'desc')
+                    .get();
+                
+                allOrders = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    
+                    // 修复：标准化订单数据，确保所有字段都有值
+                    const standardizedOrder = {
+                        id: doc.id,
+                        ...data,
+                        customerInfo: data.customerInfo || {
+                            name: '未知客户',
+                            phone: '未提供',
+                            email: '',
+                            address: '未提供',
+                            state: 'west'
+                        },
+                        pricing: {
+                            package: data.pricing?.package || '未知配套',
+                            songCount: data.pricing?.songCount || 0,
+                            packagePrice: data.pricing?.packagePrice || 0,
+                            shippingFee: data.pricing?.shippingFee || 0,
+                            totalPrice: data.pricing?.totalPrice || 0  // 关键修复：确保 totalPrice 有值
+                        },
+                        playlist: data.playlist || [],
+                        orderDate: data.orderDate?.toDate ? data.orderDate.toDate() : new Date(data.orderDate || new Date()),
+                        status: data.status || 'pending',
+                        userId: data.userId || null,
+                        notes: data.notes || ''
+                    };
+                    
+                    allOrders.push(standardizedOrder);
+                });
+                
+                filterOrders();
+                updateStats();
+            } catch (error) {
+                console.error('加载订单失败:', error);
+                showError('加载订单失败: ' + error.message);
+            }
+        }
+        
+        function setupRealtimeListener() {
+            firestore.collection('orders')
+                .orderBy('orderDate', 'desc')
+                .onSnapshot(snapshot => {
+                    allOrders = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        
+                        // 修复：标准化订单数据，确保所有字段都有值
+                        const standardizedOrder = {
+                            id: doc.id,
+                            ...data,
+                            customerInfo: data.customerInfo || {
+                                name: '未知客户',
+                                phone: '未提供',
+                                email: '',
+                                address: '未提供',
+                                state: 'west'
+                            },
+                            pricing: {
+                                package: data.pricing?.package || '未知配套',
+                                songCount: data.pricing?.songCount || 0,
+                                packagePrice: data.pricing?.packagePrice || 0,
+                                shippingFee: data.pricing?.shippingFee || 0,
+                                totalPrice: data.pricing?.totalPrice || 0  // 关键修复：确保 totalPrice 有值
+                            },
+                            playlist: data.playlist || [],
+                            orderDate: data.orderDate?.toDate ? data.orderDate.toDate() : new Date(data.orderDate || new Date()),
+                            status: data.status || 'pending',
+                            userId: data.userId || null,
+                            notes: data.notes || ''
+                        };
+                        
+                        allOrders.push(standardizedOrder);
+                    });
+                    
+                    filterOrders();
+                    updateStats();
+                }, error => {
+                    console.error('实时监听错误:', error);
+                });
+        }
+        
+        function filterOrders() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const packageFilter = document.getElementById('package-filter').value;
+            const sizeFilter = document.getElementById('size-filter').value;
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            filteredOrders = allOrders.filter(order => {
+                // 状态筛选
+                const matchesStatus = !statusFilter || order.status === statusFilter;
+                
+                // 配套筛选
+                const matchesPackage = !packageFilter || order.pricing.package === packageFilter;
+                
+                // 大小筛选
+                let matchesSize = true;
+                if (sizeFilter) {
+                    const songCount = order.pricing.songCount;
+                    if (sizeFilter === 'small') matchesSize = songCount <= 50;
+                    else if (sizeFilter === 'medium') matchesSize = songCount > 50 && songCount <= 200;
+                    else if (sizeFilter === 'large') matchesSize = songCount > 200 && songCount <= 500;
+                    else if (sizeFilter === 'huge') matchesSize = songCount > 500;
+                }
+                
+                // 搜索筛选 - 添加安全访问
+                const customerName = order.customerInfo?.name || '未知客户';
+                const customerPhone = order.customerInfo?.phone || '';
+                const customerEmail = order.customerInfo?.email || '';
+                const orderId = order.orderId || '';
+                
+                const matchesSearch = !searchTerm || 
+                    customerName.toLowerCase().includes(searchTerm) ||
+                    customerPhone.includes(searchTerm) ||
+                    customerEmail.toLowerCase().includes(searchTerm) ||
+                    orderId.toLowerCase().includes(searchTerm);
+                
+                return matchesStatus && matchesPackage && matchesSize && matchesSearch;
+            });
+            
+            renderOrders();
+        }
+        
+        function renderOrders() {
+            const tbody = document.getElementById('orders-tbody');
+            
+            if (filteredOrders.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div>🔍</div>
+                            <div>没有找到符合条件的订单</div>
+                            <div style="margin-top: 10px; font-size: 0.9rem; color: #999;">
+                                尝试调整筛选条件或搜索关键词
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = filteredOrders.map(order => {
+                const orderDate = order.orderDate;
+                const formattedDate = orderDate.toLocaleDateString('zh-CN');
+                const formattedTime = orderDate.toLocaleTimeString('zh-CN', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                const songCount = order.pricing.songCount;
+                let sizeIndicator = '';
+                if (songCount > 500) {
+                    sizeIndicator = '<br><small style="color: red;">🚨 超大型歌单</small>';
+                } else if (songCount > 200) {
+                    sizeIndicator = '<br><small style="color: orange;">⚠️ 大型歌单</small>';
+                }
+                
+                // 安全访问客户信息
+                const customerName = order.customerInfo?.name || '未知客户';
+                const customerPhone = order.customerInfo?.phone || '未提供';
+                const customerEmail = order.customerInfo?.email || '';
+                const customerAddress = order.customerInfo?.address || '未提供';
+                
+                return `
+                    <tr>
+                        <td>
+                            <strong>${order.orderId}</strong>
+                            ${sizeIndicator}
+                        </td>
+                        <td>
+                            <strong>${customerName}</strong>
+                            <div class="customer-contact">
+                                <span class="contact-icon">📞</span>
+                                <span>${customerPhone}</span>
+                            </div>
+                            ${customerEmail ? `
+                                <div class="customer-contact">
+                                    <span class="contact-icon">📧</span>
+                                    <span>${customerEmail}</span>
+                                </div>
+                            ` : ''}
+                            <div style="margin-top: 5px; font-size: 0.8rem; color: #666;">
+                                ${customerAddress}
+                            </div>
+                        </td>
+                        <td>${order.pricing.package}</td>
+                        <td>
+                            ${songCount} 首
+                            ${sizeIndicator}
+                        </td>
+                        <td><strong>RM${order.pricing.totalPrice.toFixed(2)}</strong></td>
+                        <td>
+                            <span class="status-badge status-${order.status}">
+                                ${getStatusText(order.status)}
+                            </span>
+                        </td>
+                        <td>
+                            <div>${formattedDate}</div>
+                            <div style="font-size: 0.8rem; color: #666;">${formattedTime}</div>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-sm" onclick="viewOrderDetails('${order.id}')">
+                                    详情
+                                </button>
+                                <button class="btn btn-info btn-sm" onclick="viewAllSongs('${order.id}')">
+                                    歌单
+                                </button>
+                                ${order.status === 'pending' ? `
+                                    <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'confirmed')">
+                                        确认
+                                    </button>
+                                ` : ''}
+                                ${order.status === 'confirmed' ? `
+                                    <button class="btn btn-success btn-sm" onclick="updateOrderStatus('${order.id}', 'completed')">
+                                        完成
+                                    </button>
+                                ` : ''}
+                                ${order.status !== 'cancelled' ? `
+                                    <button class="btn btn-danger btn-sm" onclick="updateOrderStatus('${order.id}', 'cancelled')">
+                                        取消
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待确认',
+                'confirmed': '已确认', 
+                'completed': '已完成',
+                'cancelled': '已取消'
+            };
+            return statusMap[status] || status;
+        }
+        
+        function updateStats() {
+            const totalOrders = allOrders.length;
+            const pendingOrders = allOrders.filter(order => order.status === 'pending').length;
+            const totalSongs = allOrders.reduce((sum, order) => sum + order.pricing.songCount, 0);
+            const totalRevenue = allOrders.reduce((sum, order) => sum + order.pricing.totalPrice, 0);
+            const largePlaylists = allOrders.filter(order => order.pricing.songCount > 200 && order.pricing.songCount <= 500).length;
+            const hugePlaylists = allOrders.filter(order => order.pricing.songCount > 500).length;
+            
+            document.getElementById('total-orders').textContent = totalOrders;
+            document.getElementById('pending-orders').textContent = pendingOrders;
+            document.getElementById('total-songs').textContent = totalSongs.toLocaleString();
+            document.getElementById('total-revenue').textContent = `RM ${totalRevenue.toFixed(2)}`;
+            document.getElementById('large-playlists').textContent = largePlaylists;
+            document.getElementById('huge-playlists').textContent = hugePlaylists;
+        }
+        
+        // ==================== 订单操作 ====================
+        function viewOrderDetails(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const modal = document.getElementById('order-modal');
+            const details = document.getElementById('order-details');
+            
+            const orderDate = order.orderDate;
+            const formattedDateTime = orderDate.toLocaleString('zh-CN');
+            
+            const songCount = order.pricing.songCount;
+            let sizeWarning = '';
+            if (songCount > 500) {
+                sizeWarning = `
+                    <div class="huge-playlist-warning">
+                        <strong>⚠️ 超大型歌单警告</strong>
+                        <br>此订单包含 ${songCount} 首歌曲，建议使用导出功能查看完整歌单。
+                    </div>
+                `;
+            } else if (songCount > 200) {
+                sizeWarning = `
+                    <div class="large-playlist-warning">
+                        <strong>📋 大型歌单提示</strong>
+                        <br>此订单包含 ${songCount} 首歌曲，查看完整歌单时建议使用分页功能。
+                    </div>
+                `;
+            }
+            
+            // 安全访问客户信息
+            const customerInfo = order.customerInfo || {
+                name: '未知客户',
+                phone: '未提供',
+                email: '',
+                address: '未提供',
+                state: 'west'
+            };
+            
+            details.innerHTML = `
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h3>订单信息</h3>
+                        <p><strong>订单号:</strong> ${order.orderId}</p>
+                        <p><strong>状态:</strong> <span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></p>
+                        <p><strong>下单时间:</strong> ${formattedDateTime}</p>
+                        <p><strong>用户ID:</strong> ${order.userId || '未登录用户'}</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>客户信息</h3>
+                        <p><strong>姓名:</strong> ${customerInfo.name}</p>
+                        <p><strong>电话:</strong> ${customerInfo.phone}</p>
+                        <p><strong>邮箱:</strong> ${customerInfo.email || '未提供'}</p>
+                        <p><strong>地址:</strong> ${customerInfo.address}</p>
+                        <p><strong>州属:</strong> ${customerInfo.state === 'west' ? '西马' : '东马'}</p>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>价格信息</h3>
+                        <p><strong>配套:</strong> ${order.pricing.package}</p>
+                        <p><strong>歌曲数量:</strong> ${order.pricing.songCount} 首</p>
+                        <p><strong>配套价格:</strong> RM${order.pricing.packagePrice.toFixed(2)}</p>
+                        <p><strong>邮费:</strong> RM${order.pricing.shippingFee.toFixed(2)}</p>
+                        <p><strong>总费用:</strong> <strong>RM${order.pricing.totalPrice.toFixed(2)}</strong></p>
+                    </div>
+                </div>
+                
+                ${sizeWarning}
+                
+                <div class="songs-section">
+                    <div class="songs-controls">
+                        <h3>歌单预览 (${order.playlist.length} 首歌曲)</h3>
+                        <div>
+                            <button class="btn btn-info" onclick="viewAllSongs('${order.id}')">
+                                📋 查看完整歌单
+                            </button>
+                            <button class="btn btn-success" onclick="exportSongsToCSV('${order.id}')">
+                                📥 导出CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="songs-list">
+                        ${order.playlist.slice(0, 10).map((song, index) => `
+                            <div class="song-item">
+                                <div class="song-info">
+                                    <div class="song-title">${index + 1}. ${song.title}</div>
+                                    <div class="song-artist">${song.artist} - ${song.album || '未知专辑'}</div>
+                                </div>
+                                ${song.duration ? `
+                                    <div class="song-duration">${formatDuration(song.duration)}</div>
+                                ` : ''}
+                            </div>
+                        `).join('')}
+                        
+                        ${order.playlist.length > 10 ? `
+                            <div class="song-item" style="justify-content: center; background: #e9ecef;">
+                                <div style="color: #666; font-style: italic;">
+                                    ... 还有 ${order.playlist.length - 10} 首歌曲
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                ${order.notes ? `
+                    <div class="info-card">
+                        <h3>备注</h3>
+                        <p>${order.notes}</p>
+                    </div>
+                ` : ''}
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-primary" onclick="closeModal()">关闭</button>
+                    ${order.status === 'pending' ? `
+                        <button class="btn btn-success" onclick="updateOrderStatus('${order.id}', 'confirmed')">确认订单</button>
+                    ` : ''}
+                    ${order.status === 'confirmed' ? `
+                        <button class="btn btn-success" onclick="updateOrderStatus('${order.id}', 'completed')">标记完成</button>
+                    ` : ''}
+                    ${order.status !== 'cancelled' ? `
+                        <button class="btn btn-danger" onclick="updateOrderStatus('${order.id}', 'cancelled')">取消订单</button>
+                    ` : ''}
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        function viewAllSongs(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const modal = document.getElementById('songs-modal');
+            const content = document.getElementById('songs-modal-content');
+            
+            let currentPage = 1;
+            const songsPerPage = 50;
+            const totalPages = Math.ceil(order.playlist.length / songsPerPage);
+            let filteredSongs = order.playlist;
+            let currentSearchTerm = '';
+            
+            function renderSongsPage(page, songs = filteredSongs) {
+                const startIndex = (page - 1) * songsPerPage;
+                const endIndex = startIndex + songsPerPage;
+                const pageSongs = songs.slice(startIndex, endIndex);
+                
+                // 安全访问客户信息
+                const customerInfo = order.customerInfo || { name: '未知客户' };
+                
+                content.innerHTML = `
+                    <div style="margin-bottom: 20px;">
+                        <h3>${customerInfo.name} 的歌单</h3>
+                        <p>共计 ${order.playlist.length} 首歌曲 | 订单号: ${order.orderId}</p>
+                    </div>
+                    
+                    <div class="songs-controls">
+                        <div>
+                            <input type="text" 
+                                   class="songs-search" 
+                                   id="songs-search-input" 
+                                   placeholder="搜索歌曲名称、歌手或专辑..." 
+                                   value="${currentSearchTerm}"
+                                   onkeyup="filterSongsInModal('${orderId}')">
+                            <button class="btn btn-info" onclick="filterSongsInModal('${orderId}')">搜索</button>
+                            <button class="btn" onclick="clearSongSearch('${orderId}')">清除</button>
+                        </div>
+                        <div>
+                            <button class="btn btn-success" onclick="exportSongsToCSV('${orderId}')">
+                                📥 导出Excel
+                            </button>
+                            <button class="btn btn-warning" onclick="printSongs('${orderId}')">
+                                🖨️ 打印
+                            </button>
+                        </div>
+                    </div>
+                    
+                    ${currentSearchTerm ? `
+                        <div style="background: #e7f3ff; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                            🔍 搜索 "${currentSearchTerm}"，找到 ${songs.length} 首歌曲
+                        </div>
+                    ` : ''}
+                    
+                    <div class="pagination">
+                        <button class="page-btn" ${page <= 1 ? 'disabled' : ''} onclick="changeSongsPage(${page - 1})">
+                            上一页
+                        </button>
+                        <span class="page-info">第 ${page} 页，共 ${totalPages} 页</span>
+                        <button class="page-btn" ${page >= totalPages ? 'disabled' : ''} onclick="changeSongsPage(${page + 1})">
+                            下一页
+                        </button>
+                    </div>
+                    
+                    <div class="songs-list">
+                        ${pageSongs.map((song, index) => {
+                            const globalIndex = startIndex + index + 1;
+                            return `
+                                <div class="song-item">
+                                    <div class="song-info">
+                                        <div class="song-title">${globalIndex}. ${song.title}</div>
+                                        <div class="song-artist">${song.artist} - ${song.album || '未知专辑'}</div>
+                                    </div>
+                                    ${song.duration ? `
+                                        <div class="song-duration">${formatDuration(song.duration)}</div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div class="pagination">
+                        <button class="page-btn" ${page <= 1 ? 'disabled' : ''} onclick="changeSongsPage(${page - 1})">
+                            上一页
+                        </button>
+                        <span class="page-info">第 ${page} 页，共 ${totalPages} 页</span>
+                        <button class="page-btn" ${page >= totalPages ? 'disabled' : ''} onclick="changeSongsPage(${page + 1})">
+                            下一页
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="closeSongsModal()">关闭</button>
+                    </div>
+                `;
+            }
+            
+            window.filterSongsInModal = function(orderId) {
+                const searchTerm = document.getElementById('songs-search-input').value.toLowerCase();
+                currentSearchTerm = searchTerm;
+                
+                if (!searchTerm) {
+                    filteredSongs = order.playlist;
+                } else {
+                    filteredSongs = order.playlist.filter(song => 
+                        song.title.toLowerCase().includes(searchTerm) ||
+                        song.artist.toLowerCase().includes(searchTerm) ||
+                        (song.album && song.album.toLowerCase().includes(searchTerm))
+                    );
+                }
+                
+                currentPage = 1;
+                const newTotalPages = Math.ceil(filteredSongs.length / songsPerPage);
+                renderSongsPage(1, filteredSongs);
+            };
+            
+            window.clearSongSearch = function(orderId) {
+                document.getElementById('songs-search-input').value = '';
+                currentSearchTerm = '';
+                filteredSongs = order.playlist;
+                currentPage = 1;
+                renderSongsPage(1);
+            };
+            
+            window.changeSongsPage = function(page) {
+                if (page >= 1 && page <= Math.ceil(filteredSongs.length / songsPerPage)) {
+                    currentPage = page;
+                    renderSongsPage(page);
+                }
+            };
+            
+            renderSongsPage(1);
+            modal.style.display = 'flex';
+        }
+        
+        async function updateOrderStatus(orderId, newStatus) {
+            if (!confirm(`确定要将订单状态更新为"${getStatusText(newStatus)}"吗？`)) {
+                return;
+            }
+            
+            try {
+                await firestore.collection('orders').doc(orderId).update({
+                    status: newStatus
+                });
+                showMessage(`订单状态已更新为: ${getStatusText(newStatus)}`);
+            } catch (error) {
+                console.error('更新订单状态失败:', error);
+                showError('更新失败，请重试');
+            }
+        }
+        
+        // ==================== 导出功能 ====================
+        function exportSongsToCSV(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            let csvContent = '序号,歌曲名称,歌手,专辑,时长(秒),时长(分:秒)\n';
+            
+            order.playlist.forEach((song, index) => {
+                const durationInSeconds = song.duration ? Math.floor(song.duration / 1000) : '';
+                const durationFormatted = song.duration ? formatDuration(song.duration) : '';
+                
+                const row = [
+                    index + 1,
+                    `"${song.title}"`,
+                    `"${song.artist}"`,
+                    `"${song.album || ''}"`,
+                    durationInSeconds,
+                    durationFormatted
+                ].join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            // 安全访问客户信息
+            const customerInfo = order.customerInfo || { name: '未知客户' };
+            downloadCSV(csvContent, `歌单_${customerInfo.name}_${order.orderId}.csv`);
+            showMessage('CSV文件导出成功！');
+        }
+        
+        function exportAllData() {
+            let csvContent = '订单号,客户姓名,电话,邮箱,地址,州属,配套,歌曲数量,总金额,状态,下单时间\n';
+            
+            allOrders.forEach(order => {
+                const orderDate = order.orderDate;
+                const formattedDate = orderDate.toLocaleString('zh-CN');
+                
+                // 安全访问客户信息
+                const customerInfo = order.customerInfo || {
+                    name: '未知客户',
+                    phone: '未提供',
+                    email: '',
+                    address: '未提供',
+                    state: 'west'
+                };
+                
+                const row = [
+                    order.orderId,
+                    `"${customerInfo.name}"`,
+                    customerInfo.phone,
+                    `"${customerInfo.email || ''}"`,
+                    `"${customerInfo.address}"`,
+                    customerInfo.state === 'west' ? '西马' : '东马',
+                    order.pricing.package,
+                    order.pricing.songCount,
+                    order.pricing.totalPrice,
+                    getStatusText(order.status),
+                    formattedDate
+                ].join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            downloadCSV(csvContent, `所有订单_${new Date().toISOString().split('T')[0]}.csv`);
+            showMessage('所有订单数据导出成功！');
+        }
+        
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function printSongs(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const printWindow = window.open('', '_blank');
+            
+            // 安全访问客户信息
+            const customerInfo = order.customerInfo || { name: '未知客户' };
+            
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>歌单 - ${order.orderId}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 20px; }
+                            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+                            .song-list { margin: 20px 0; }
+                            .song-item { padding: 8px 0; border-bottom: 1px solid #eee; }
+                            .song-number { font-weight: bold; margin-right: 10px; }
+                            @media print {
+                                .no-print { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>歌厅定制 - 歌单详情</h1>
+                            <p><strong>订单号:</strong> ${order.orderId} | <strong>客户:</strong> ${customerInfo.name}</p>
+                            <p><strong>歌曲数量:</strong> ${order.playlist.length} 首 | <strong>打印时间:</strong> ${new Date().toLocaleString('zh-CN')}</p>
+                        </div>
+                        <div class="song-list">
+                            ${order.playlist.map((song, index) => `
+                                <div class="song-item">
+                                    <span class="song-number">${index + 1}.</span>
+                                    <strong>${song.title}</strong> - ${song.artist}
+                                    ${song.album ? ` (${song.album})` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="no-print" style="margin-top: 30px; text-align: center;">
+                            <button onclick="window.print()">打印</button>
+                            <button onclick="window.close()">关闭</button>
+                        </div>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+        
+        // ==================== 工具函数 ====================
+        function formatDuration(milliseconds) {
+            if (!milliseconds) return '';
+            const minutes = Math.floor(milliseconds / 60000);
+            const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
+            return `${minutes}:${seconds.padStart(2, '0')}`;
+        }
+        
+        function closeModal() {
+            document.getElementById('order-modal').style.display = 'none';
+        }
+        
+        function closeSongsModal() {
+            document.getElementById('songs-modal').style.display = 'none';
+        }
+        
+        function refreshData() {
+            loadOrders();
+            showMessage('数据已刷新！');
+        }
+        
+        function showLoading() {
+            const tbody = document.getElementById('orders-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <div>⏳</div>
+                        <div>正在加载订单数据...</div>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function showError(message) {
+            const tbody = document.getElementById('orders-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        <div>❌</div>
+                        <div>${message}</div>
+                        <button class="btn btn-primary" onclick="refreshData()" style="margin-top: 10px;">
+                            重试
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+        
+        function showMessage(message) {
+            // 简单的消息提示
+            alert(message);
+        }
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查管理员会话
+            if (!checkAdminSession()) {
+                // 焦点到密码输入框
+                document.getElementById('admin-password').focus();
+            }
+        });
+    </script>
+</body>
+</html>
