@@ -1825,46 +1825,53 @@ async function searchMusic(term, category = 'musicTrack', limit = 50) {
     try {
         showLoading('正在搜索热门歌曲...');
         
+        // 获取搜索配置
         const searchConfig = getSearchConfig(term, category);
         let allResults = [];
         
-        console.log(`🔍 智能搜索策略:`, searchConfig.searchTerms);
+        console.log('🔍 开始智能搜索...');
         
-        // 顺序搜索而不是并行搜索，避免复杂的 async/await 问题
-        for (const searchTerm of searchConfig.searchTerms) {
-            if (allResults.length >= limit) break;
+        // 使用简单的顺序搜索
+        for (let i = 0; i < searchConfig.searchTerms.length; i++) {
+            const searchTerm = searchConfig.searchTerms[i];
             
             try {
-                const results = await performSingleSearch(searchTerm, category, limit, searchConfig.country);
-                const existingIds = new Set(allResults.map(song => song.id));
+                console.log(`搜索: ${searchTerm}`);
+                const results = await performSingleSearch(searchTerm, category, 20, searchConfig.country);
                 
+                // 合并结果，去重
                 results.forEach(song => {
-                    if (!existingIds.has(song.id)) {
+                    const exists = allResults.some(existing => existing.id === song.id);
+                    if (!exists) {
                         allResults.push(song);
                     }
                 });
                 
-                console.log(`搜索 "${searchTerm}" 获得 ${results.length} 首歌曲`);
+                console.log(`搜索完成，当前总数: ${allResults.length}`);
+                
+                // 如果已经达到限制，提前结束
+                if (allResults.length >= limit) {
+                    break;
+                }
             } catch (error) {
-                console.warn(`搜索 "${searchTerm}" 失败:`, error);
+                console.warn(`搜索失败: ${searchTerm}`, error);
             }
         }
         
-        console.log(`🎵 总搜索结果: ${allResults.length} 首歌曲`);
+        console.log(`🎵 搜索完成，共找到 ${allResults.length} 首歌曲`);
         
         if (allResults.length === 0) {
             showError('未找到相关结果，请尝试其他搜索词');
             return [];
         }
         
-        // 对结果进行智能排序
-        allResults = smartSortResults(allResults, term);
-        
-        return allResults.slice(0, limit);
+        // 排序并返回
+        const sortedResults = smartSortResults(allResults, term);
+        return sortedResults.slice(0, limit);
         
     } catch (error) {
-        console.error('搜索失败:', error);
-        showError('搜索失败，请检查网络连接或稍后重试');
+        console.error('搜索过程出错:', error);
+        showError('搜索失败，请检查网络连接');
         return [];
     }
 }
