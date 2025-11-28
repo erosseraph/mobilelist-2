@@ -20,28 +20,17 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "/$1",
+      "src": "/manifest.json",
+      "dest": "/manifest.json",
       "headers": {
+        "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type"
+        "Access-Control-Allow-Methods": "GET, OPTIONS"
       }
-    }
-  ],
-  "headers": [
+    },
     {
-      "source": "/(.*).json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/json"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        }
-      ]
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
