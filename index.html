@@ -13,102 +13,99 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="歌厅定制">
     
-    <!-- PWA Manifest -->
-   <!-- 内联 PWA Manifest 配置 -->
-<script type="application/manifest+json">
-{
-  "name": "定制你的专属歌厅",
-  "short_name": "歌厅定制",
-  "description": "专业歌厅定制服务，打造您的专属音乐空间",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1a2a6c",
-  "theme_color": "#1a2a6c",
-  "orientation": "portrait",
-  "scope": "/",
-  "lang": "zh-CN",
-  "categories": ["music", "entertainment", "shopping"],
-  
-  "icons": [
+    <!-- 内联 PWA Manifest 配置 -->
+    <script type="application/manifest+json">
     {
-      "src": "/icons/icon-72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-96.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-384.png",
-      "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "name": "定制你的专属歌厅",
+      "short_name": "歌厅定制",
+      "description": "专业歌厅定制服务，打造您的专属音乐空间",
+      "start_url": "/",
+      "display": "standalone",
+      "background_color": "#1a2a6c",
+      "theme_color": "#1a2a6c",
+      "orientation": "portrait",
+      "scope": "/",
+      "lang": "zh-CN",
+      "categories": ["music", "entertainment", "shopping"],
+      
+      "icons": [
+        {
+          "src": "/icons/icon-72.png",
+          "sizes": "72x72",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-96.png",
+          "sizes": "96x96",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-128.png",
+          "sizes": "128x128",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-144.png",
+          "sizes": "144x144",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-152.png",
+          "sizes": "152x152",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-384.png",
+          "sizes": "384x384",
+          "type": "image/png",
+          "purpose": "any maskable"
+        },
+        {
+          "src": "/icons/icon-512.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
     }
-  ]
-}
-</script>
+    </script>
 
-<!-- 图标加载备用方案 -->
-<script>
-// 动态加载图标，如果失败则使用备用方案
-document.addEventListener('DOMContentLoaded', function() {
-    const icons = [
-        '/icons/icon-72.png',
-        '/icons/icon-96.png', 
-        '/icons/icon-128.png',
-        '/icons/icon-144.png',
-        '/icons/icon-152.png',
-        '/icons/icon-192.png',
-        '/icons/icon-384.png',
-        '/icons/icon-512.png'
-    ];
-    
-    // 预加载图标并检测是否可用
-    icons.forEach(iconPath => {
-        const img = new Image();
-        img.onerror = function() {
-            console.warn('图标加载失败:', iconPath);
-            // 可以在这里添加备用图标逻辑
-        };
-        img.src = iconPath;
+    <!-- 图标加载备用方案 -->
+    <script>
+    // 动态加载图标，如果失败则使用备用方案
+    document.addEventListener('DOMContentLoaded', function() {
+        const icons = [
+            '/icons/icon-72.png',
+            '/icons/icon-96.png', 
+            '/icons/icon-128.png',
+            '/icons/icon-144.png',
+            '/icons/icon-152.png',
+            '/icons/icon-192.png',
+            '/icons/icon-384.png',
+            '/icons/icon-512.png'
+        ];
+        
+        // 预加载图标并检测是否可用
+        icons.forEach(iconPath => {
+            const img = new Image();
+            img.onerror = function() {
+                console.warn('图标加载失败:', iconPath);
+            };
+            img.src = iconPath;
+        });
     });
-});
-</script>
-    
+    </script>
     
     <!-- 苹果 Touch 图标 -->
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -497,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         .pricing-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
             padding: 20px;
         }
@@ -507,14 +504,34 @@ document.addEventListener('DOMContentLoaded', function() {
             border-radius: 15px;
             padding: 25px;
             text-align: center;
-            backdrop-filter: blur(10px);
             transition: all 0.3s;
-            border: 1px solid transparent;
+            position: relative;
         }
         
         .pricing-card:hover {
             transform: translateY(-5px);
-            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .pricing-card.popular {
+            border: 2px solid #ffd700;
+            transform: scale(1.05);
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffd700;
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .pricing-card.custom {
+            background: rgba(255, 255, 255, 0.15);
         }
         
         .plan-name {
@@ -534,16 +551,6 @@ document.addEventListener('DOMContentLoaded', function() {
             margin-bottom: 20px;
         }
         
-        .features {
-            list-style: none;
-            margin-bottom: 20px;
-        }
-        
-        .features li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
         .select-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -553,11 +560,75 @@ document.addEventListener('DOMContentLoaded', function() {
             cursor: pointer;
             font-size: 1rem;
             transition: all 0.3s;
+            width: 100%;
         }
         
         .select-btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
+        }
+        
+        .select-btn.popular-btn {
+            background: #ffd700;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .select-btn.custom-btn {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 配送信息样式 */
+        .shipping-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 800px;
+        }
+        
+        .shipping-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .shipping-option {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .shipping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .shipping-region {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .shipping-price {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .shipping-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .shipping-note {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-style: italic;
+            margin-top: 15px;
         }
         
         /* 订单页面样式 */
@@ -958,6 +1029,18 @@ document.addEventListener('DOMContentLoaded', function() {
             .playlist-section {
                 max-height: 300px;
             }
+            
+            .pricing-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-card.popular {
+                transform: scale(1.02);
+            }
+            
+            .shipping-options {
+                grid-template-columns: 1fr;
+            }
         }
         
         /* 工具类 */
@@ -1112,73 +1195,82 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="pricing-card">
                         <div class="plan-name">基础版</div>
                         <div class="price">RM 29</div>
-                        <div class="song-range">1-20 首歌曲</div>
-                        <ul class="features">
-                            <li>✓ 基础音质</li>
-                            <li>✓ 标准服务</li>
-                            <li>✓ 7天交付</li>
-                        </ul>
-                        <button class="select-btn">选择配套</button>
+                        <div class="song-range">1 - 20 首歌曲</div>
+                        <button class="select-btn">选择此配套</button>
                     </div>
                     
                     <div class="pricing-card">
                         <div class="plan-name">标准版</div>
                         <div class="price">RM 49</div>
-                        <div class="song-range">21-50 首歌曲</div>
-                        <ul class="features">
-                            <li>✓ 高清音质</li>
-                            <li>✓ 优先服务</li>
-                            <li>✓ 5天交付</li>
-                        </ul>
-                        <button class="select-btn">选择配套</button>
+                        <div class="song-range">21 - 50 首歌曲</div>
+                        <button class="select-btn">选择此配套</button>
                     </div>
                     
-                    <div class="pricing-card">
+                    <div class="pricing-card popular">
+                        <div class="popular-badge">最受欢迎</div>
                         <div class="plan-name">进阶版</div>
                         <div class="price">RM 69</div>
-                        <div class="song-range">51-100 首歌曲</div>
-                        <ul class="features">
-                            <li>✓ 超清音质</li>
-                            <li>✓ VIP服务</li>
-                            <li>✓ 3天交付</li>
-                        </ul>
-                        <button class="select-btn">选择配套</button>
+                        <div class="song-range">51 - 100 首歌曲</div>
+                        <button class="select-btn popular-btn">选择此配套</button>
                     </div>
                     
                     <div class="pricing-card">
                         <div class="plan-name">豪华版</div>
                         <div class="price">RM 89</div>
-                        <div class="song-range">101-200 首歌曲</div>
-                        <ul class="features">
-                            <li>✓ 无损音质</li>
-                            <li>✓ 专属客服</li>
-                            <li>✓ 2天交付</li>
-                        </ul>
-                        <button class="select-btn">选择配套</button>
+                        <div class="song-range">101 - 200 首歌曲</div>
+                        <button class="select-btn">选择此配套</button>
                     </div>
                     
                     <div class="pricing-card">
                         <div class="plan-name">专业版</div>
                         <div class="price">RM 109</div>
-                        <div class="song-range">201-300 首歌曲</div>
-                        <ul class="features">
-                            <li>✓ 母带音质</li>
-                            <li>✓ 技术指导</li>
-                            <li>✓ 24小时交付</li>
-                        </ul>
-                        <button class="select-btn">选择配套</button>
+                        <div class="song-range">201 - 300 首歌曲</div>
+                        <button class="select-btn">选择此配套</button>
                     </div>
                     
                     <div class="pricing-card">
                         <div class="plan-name">旗舰版</div>
                         <div class="price">RM 129</div>
-                        <div class="song-range">301-400 首歌曲</div>
-                        <ul class="features">
-                            <li>✓ 定制音效</li>
-                            <li>✓ 专业调音</li>
-                            <li>✓ 12小时交付</li>
-                        </ul>
-                        <button class="select-btn">选择配套</button>
+                        <div class="song-range">301 - 400 首歌曲</div>
+                        <button class="select-btn">选择此配套</button>
+                    </div>
+                    
+                    <div class="pricing-card">
+                        <div class="plan-name">至尊版</div>
+                        <div class="price">RM 159</div>
+                        <div class="song-range">401 - 500 首歌曲</div>
+                        <button class="select-btn">选择此配套</button>
+                    </div>
+                    
+                    <div class="pricing-card custom">
+                        <div class="plan-name">自定义版</div>
+                        <div class="price">RM 0.30/每首</div>
+                        <div class="song-range">501+ 首歌曲</div>
+                        <button class="select-btn custom-btn">联系定制</button>
+                    </div>
+                </div>
+                
+                <!-- 配送信息 -->
+                <div class="shipping-info">
+                    <h3 style="text-align: center; margin: 30px 0 20px 0; color: white;">配送信息</h3>
+                    <div class="shipping-options">
+                        <div class="shipping-option">
+                            <div class="shipping-header">
+                                <span class="shipping-region">西马</span>
+                                <span class="shipping-price">免费配送</span>
+                            </div>
+                            <div class="shipping-desc">预计 5-7 个工作日内送达</div>
+                        </div>
+                        <div class="shipping-option">
+                            <div class="shipping-header">
+                                <span class="shipping-region">东马</span>
+                                <span class="shipping-price">RM 8.00</span>
+                            </div>
+                            <div class="shipping-desc">预计 7-10 个工作日内送达</div>
+                        </div>
+                    </div>
+                    <div class="shipping-note">
+                        * 所有配套均包含完整的技术支持和售后服务
                     </div>
                 </div>
             </div>
@@ -1641,7 +1733,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (pricingCard) {
                         const planName = pricingCard.querySelector('.plan-name').textContent;
                         const price = pricingCard.querySelector('.price').textContent;
-                        alert(`您选择了 ${planName} 配套\n价格: ${price}\n\n请点击"分享歌单"提交订单。`);
+                        const songRange = pricingCard.querySelector('.song-range').textContent;
+                        
+                        if (planName === '自定义版') {
+                            alert(`📞 请联系我们定制 ${songRange} 的专属方案\n价格: ${price}\n\n请点击"分享歌单"后联系客服。`);
+                        } else {
+                            alert(`✅ 您选择了 ${planName}\n歌曲范围: ${songRange}\n价格: ${price}\n\n请点击"分享歌单"提交订单。`);
+                        }
                     }
                 });
             });
@@ -1681,193 +1779,193 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // ==================== 改进的音乐搜索功能 ====================
-async function searchMusic(term, category = 'musicTrack', limit = 50) {
-    try {
-        showLoading('正在搜索...');
-        
-        // 备用搜索词策略
-        let searchTerms = [term];
-        
-        // 如果是中文搜索，添加英文备用词
-        if (/[\u4e00-\u9fa5]/.test(term)) {
-            // 常见歌手英文名映射
-            const artistMap = {
-                '周杰伦': 'Jay Chou',
-                '林俊杰': 'JJ Lin', 
-                '邓紫棋': 'G.E.M.',
-                '薛之谦': 'Joker Xue',
-                '王力宏': 'Leehom Wang',
-                '陈奕迅': 'Eason Chan',
-                '张惠妹': 'A-Mei',
-                '蔡依林': 'Jolin Tsai'
-            };
-            
-            // 检查是否包含特定歌手
-            for (const [chinese, english] of Object.entries(artistMap)) {
-                if (term.includes(chinese)) {
-                    searchTerms.push(english);
-                    break;
-                }
-            }
-            
-            // 添加通用英文关键词
-            if (term.includes('华语') || term.includes('中文')) {
-                searchTerms.push('chinese pop');
-                searchTerms.push('mandopop');
-            }
-        }
-        
-        let allResults = [];
-        
-        // 尝试多个搜索词
-        for (const searchTerm of searchTerms) {
-            if (allResults.length >= limit) break;
-            
-            const encodedTerm = encodeURIComponent(searchTerm);
-            const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=${category}&limit=${limit}&country=CN&lang=zh_cn`;
-            
-            console.log(`🔍 搜索: ${searchTerm}, URL: ${url}`);
-            
+        async function searchMusic(term, category = 'musicTrack', limit = 50) {
             try {
-                const response = await fetch(url);
-                if (!response.ok) continue;
+                showLoading('正在搜索...');
                 
-                const data = await response.json();
-                console.log(`📊 搜索结果: ${data.resultCount} 条`);
+                // 备用搜索词策略
+                let searchTerms = [term];
                 
-                if (data.resultCount === 0) continue;
-                
-                const filteredResults = data.results.map(track => ({
-                    id: track.trackId || Math.random().toString(36).substr(2, 9),
-                    title: track.trackName || '未知歌曲',
-                    artist: track.artistName || '未知歌手',
-                    album: track.collectionName || '未知专辑',
-                    duration: track.trackTimeMillis,
-                    previewUrl: track.previewUrl,
-                    artwork: track.artworkUrl100
-                })).filter(track => {
-                    // 更宽松的过滤条件
-                    return track.previewUrl && 
-                           track.title && 
-                           track.artist &&
-                           !track.title.toLowerCase().includes('karaoke') &&
-                           !track.artist.toLowerCase().includes('karaoke');
-                });
-                
-                // 去重并合并结果
-                const existingIds = new Set(allResults.map(song => song.id));
-                filteredResults.forEach(song => {
-                    if (!existingIds.has(song.id)) {
-                        allResults.push(song);
+                // 如果是中文搜索，添加英文备用词
+                if (/[\u4e00-\u9fa5]/.test(term)) {
+                    // 常见歌手英文名映射
+                    const artistMap = {
+                        '周杰伦': 'Jay Chou',
+                        '林俊杰': 'JJ Lin', 
+                        '邓紫棋': 'G.E.M.',
+                        '薛之谦': 'Joker Xue',
+                        '王力宏': 'Leehom Wang',
+                        '陈奕迅': 'Eason Chan',
+                        '张惠妹': 'A-Mei',
+                        '蔡依林': 'Jolin Tsai'
+                    };
+                    
+                    // 检查是否包含特定歌手
+                    for (const [chinese, english] of Object.entries(artistMap)) {
+                        if (term.includes(chinese)) {
+                            searchTerms.push(english);
+                            break;
+                        }
                     }
-                });
+                    
+                    // 添加通用英文关键词
+                    if (term.includes('华语') || term.includes('中文')) {
+                        searchTerms.push('chinese pop');
+                        searchTerms.push('mandopop');
+                    }
+                }
+                
+                let allResults = [];
+                
+                // 尝试多个搜索词
+                for (const searchTerm of searchTerms) {
+                    if (allResults.length >= limit) break;
+                    
+                    const encodedTerm = encodeURIComponent(searchTerm);
+                    const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=${category}&limit=${limit}&country=CN&lang=zh_cn`;
+                    
+                    console.log(`🔍 搜索: ${searchTerm}, URL: ${url}`);
+                    
+                    try {
+                        const response = await fetch(url);
+                        if (!response.ok) continue;
+                        
+                        const data = await response.json();
+                        console.log(`📊 搜索结果: ${data.resultCount} 条`);
+                        
+                        if (data.resultCount === 0) continue;
+                        
+                        const filteredResults = data.results.map(track => ({
+                            id: track.trackId || Math.random().toString(36).substr(2, 9),
+                            title: track.trackName || '未知歌曲',
+                            artist: track.artistName || '未知歌手',
+                            album: track.collectionName || '未知专辑',
+                            duration: track.trackTimeMillis,
+                            previewUrl: track.previewUrl,
+                            artwork: track.artworkUrl100
+                        })).filter(track => {
+                            // 更宽松的过滤条件
+                            return track.previewUrl && 
+                                   track.title && 
+                                   track.artist &&
+                                   !track.title.toLowerCase().includes('karaoke') &&
+                                   !track.artist.toLowerCase().includes('karaoke');
+                        });
+                        
+                        // 去重并合并结果
+                        const existingIds = new Set(allResults.map(song => song.id));
+                        filteredResults.forEach(song => {
+                            if (!existingIds.has(song.id)) {
+                                allResults.push(song);
+                            }
+                        });
+                        
+                    } catch (error) {
+                        console.warn(`搜索词 "${searchTerm}" 失败:`, error);
+                        continue;
+                    }
+                }
+                
+                console.log(`🎵 总过滤后结果: ${allResults.length} 首歌曲`);
+                
+                if (allResults.length === 0) {
+                    showError('未找到相关结果，请尝试其他搜索词');
+                    return [];
+                }
+                
+                return allResults.slice(0, limit);
                 
             } catch (error) {
-                console.warn(`搜索词 "${searchTerm}" 失败:`, error);
-                continue;
+                console.error('搜索失败:', error);
+                showError('搜索失败，请检查网络连接或稍后重试');
+                return [];
             }
         }
         
-        console.log(`🎵 总过滤后结果: ${allResults.length} 首歌曲`);
-        
-        if (allResults.length === 0) {
-            showError('未找到相关结果，请尝试其他搜索词');
-            return [];
-        }
-        
-        return allResults.slice(0, limit);
-        
-    } catch (error) {
-        console.error('搜索失败:', error);
-        showError('搜索失败，请检查网络连接或稍后重试');
-        return [];
-    }
-}
-        
         // ==================== 改进的排行榜加载 ====================
-async function loadChart(category) {
-    isSearchResultsView = false;
-    let searchTerms = [];
-    let entityType = 'musicTrack';
-    let limit = 50;
-    
-    // 多关键词搜索策略
-    switch(category) {
-        case 'chinese-pop':
-            searchTerms = [
-                '周杰伦',
-                '林俊杰', 
-                '邓紫棋',
-                '薛之谦',
-                '华语流行',
-                'mandopop',
-                'chinese pop'
-            ];
-            break;
-        case 'western-pop':
-            searchTerms = [
-                'Taylor Swift',
-                'Ed Sheeran',
-                'Ariana Grande',
-                'Justin Bieber',
-                'Billie Eilish',
-                'pop music',
-                'top 40'
-            ];
-            break;
-        case 'chinese-dj':
-            searchTerms = [
-                '中文DJ',
-                '电音',
-                'EDM',
-                'remix',
-                '电子音乐'
-            ];
-            entityType = 'musicTrack';
-            limit = 40;
-            break;
-        case 'chinese-artists':
-            renderArtistsList([
-                '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', 
-                '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿',
-                '五月天', '张学友', '刘德华', '王菲', '张杰'
-            ]);
-            return;
-        case 'western-artists':
-            renderArtistsList([
-                'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
-                'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars'
-            ]);
-            return;
-    }
-    
-    // 使用第一个搜索词进行初始搜索
-    currentSongs = await searchMusic(searchTerms[0], entityType, limit);
-    
-    // 如果结果不够，尝试其他搜索词
-    if (currentSongs.length < 15 && searchTerms.length > 1) {
-        console.log('🔁 结果较少，尝试其他搜索词...');
-        for (let i = 1; i < searchTerms.length; i++) {
-            if (currentSongs.length >= 30) break;
+        async function loadChart(category) {
+            isSearchResultsView = false;
+            let searchTerms = [];
+            let entityType = 'musicTrack';
+            let limit = 50;
             
-            const backupResults = await searchMusic(searchTerms[i], entityType, 20);
-            const existingIds = new Set(currentSongs.map(song => song.id));
-            backupResults.forEach(song => {
-                if (!existingIds.has(song.id)) {
-                    currentSongs.push(song);
+            // 多关键词搜索策略
+            switch(category) {
+                case 'chinese-pop':
+                    searchTerms = [
+                        '周杰伦',
+                        '林俊杰', 
+                        '邓紫棋',
+                        '薛之谦',
+                        '华语流行',
+                        'mandopop',
+                        'chinese pop'
+                    ];
+                    break;
+                case 'western-pop':
+                    searchTerms = [
+                        'Taylor Swift',
+                        'Ed Sheeran',
+                        'Ariana Grande',
+                        'Justin Bieber',
+                        'Billie Eilish',
+                        'pop music',
+                        'top 40'
+                    ];
+                    break;
+                case 'chinese-dj':
+                    searchTerms = [
+                        '中文DJ',
+                        '电音',
+                        'EDM',
+                        'remix',
+                        '电子音乐'
+                    ];
+                    entityType = 'musicTrack';
+                    limit = 40;
+                    break;
+                case 'chinese-artists':
+                    renderArtistsList([
+                        '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', 
+                        '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿',
+                        '五月天', '张学友', '刘德华', '王菲', '张杰'
+                    ]);
+                    return;
+                case 'western-artists':
+                    renderArtistsList([
+                        'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
+                        'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars'
+                    ]);
+                    return;
+            }
+            
+            // 使用第一个搜索词进行初始搜索
+            currentSongs = await searchMusic(searchTerms[0], entityType, limit);
+            
+            // 如果结果不够，尝试其他搜索词
+            if (currentSongs.length < 15 && searchTerms.length > 1) {
+                console.log('🔁 结果较少，尝试其他搜索词...');
+                for (let i = 1; i < searchTerms.length; i++) {
+                    if (currentSongs.length >= 30) break;
+                    
+                    const backupResults = await searchMusic(searchTerms[i], entityType, 20);
+                    const existingIds = new Set(currentSongs.map(song => song.id));
+                    backupResults.forEach(song => {
+                        if (!existingIds.has(song.id)) {
+                            currentSongs.push(song);
+                        }
+                    });
                 }
+            }
+            
+            renderSongs(currentSongs);
+            
+            document.querySelectorAll('.chart-category').forEach(chart => {
+                chart.classList.remove('active');
             });
+            const activeChart = document.querySelector(`[data-category="${category}"]`);
+            if (activeChart) activeChart.classList.add('active');
         }
-    }
-    
-    renderSongs(currentSongs);
-    
-    document.querySelectorAll('.chart-category').forEach(chart => {
-        chart.classList.remove('active');
-    });
-    const activeChart = document.querySelector(`[data-category="${category}"]`);
-    if (activeChart) activeChart.classList.add('active');
-}
         
         function renderArtistsList(artists) {
             if (!songsContainer) return;
@@ -2343,7 +2441,7 @@ async function loadChart(category) {
                     </div>
                     <div class="price-row">
                         <span>配套价格：</span>
-                        <span>RM${packagePrice.toFixed(2)}</span>
+                        <span>${packageName === '自定义版' ? `RM${packagePrice.toFixed(2)}` : `RM${packagePrice.toFixed(2)}`}</span>
                     </div>
                     <div class="price-row">
                         <span>邮费：</span>
@@ -2353,6 +2451,12 @@ async function loadChart(category) {
                         <span>总费用：</span>
                         <span>RM${totalPrice.toFixed(2)}</span>
                     </div>
+                    ${packageName === '自定义版' ? `
+                    <div class="price-row" style="color: #ffd700; font-size: 0.9rem;">
+                        <span>备注：</span>
+                        <span>自定义配套请联系客服确认最终价格</span>
+                    </div>
+                    ` : ''}
                 `;
             }
         }
