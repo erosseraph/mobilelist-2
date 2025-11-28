@@ -1825,35 +1825,30 @@ async function searchMusic(term, category = 'musicTrack', limit = 50) {
     try {
         showLoading('正在搜索热门歌曲...');
         
-        // 智能搜索词生成 - 针对不同分类使用不同策略
         const searchConfig = getSearchConfig(term, category);
         let allResults = [];
         
         console.log(`🔍 智能搜索策略:`, searchConfig.searchTerms);
         
-        // 并行搜索所有关键词
-        const searchPromises = searchConfig.searchTerms.map(async (searchTerm) => {
+        // 顺序搜索而不是并行搜索，避免复杂的 async/await 问题
+        for (const searchTerm of searchConfig.searchTerms) {
+            if (allResults.length >= limit) break;
+            
             try {
-                return await performSingleSearch(searchTerm, category, Math.ceil(limit / searchConfig.searchTerms.length), searchConfig.country);
-            } catch (error) {
-                console.warn(`搜索 "${searchTerm}" 失败:`, error);
-                return [];
-            }
-        });
-        
-        const resultsArray = await Promise.allSettled(searchPromises);
-        
-        // 合并所有结果
-        resultsArray.forEach(result => {
-            if (result.status === 'fulfilled' && result.value) {
+                const results = await performSingleSearch(searchTerm, category, limit, searchConfig.country);
                 const existingIds = new Set(allResults.map(song => song.id));
-                result.value.forEach(song => {
+                
+                results.forEach(song => {
                     if (!existingIds.has(song.id)) {
                         allResults.push(song);
                     }
                 });
+                
+                console.log(`搜索 "${searchTerm}" 获得 ${results.length} 首歌曲`);
+            } catch (error) {
+                console.warn(`搜索 "${searchTerm}" 失败:`, error);
             }
-        });
+        }
         
         console.log(`🎵 总搜索结果: ${allResults.length} 首歌曲`);
         
@@ -1862,7 +1857,7 @@ async function searchMusic(term, category = 'musicTrack', limit = 50) {
             return [];
         }
         
-        // 对结果进行智能排序（热门度、匹配度）
+        // 对结果进行智能排序
         allResults = smartSortResults(allResults, term);
         
         return allResults.slice(0, limit);
