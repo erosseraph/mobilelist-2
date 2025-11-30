@@ -148,7 +148,7 @@
             overflow-y: auto;
         }
         
-        /* 移动端标签页布局 - 默认隐藏 */
+        /* 移动端标签页布局 */
         .mobile-tabs {
             display: none;
         }
@@ -541,7 +541,7 @@
             color: #ff6b6b;
         }
 
-        /* 移动端响应式设计 */
+        /* 移动端响应式设计 - 修复版 */
         @media (max-width: 768px) {
             .container {
                 padding: 0 10px;
@@ -580,6 +580,7 @@
                 flex-direction: column;
             }
             
+            /* 修复：桌面布局在移动端隐藏 */
             .songs-section, .playlist-section {
                 display: none;
             }
@@ -937,7 +938,7 @@
             loadChart('chinese-pop');
         });
 
-        // 修复：专门处理视口初始化
+        // 修复：增强视口初始化
         function initializeViewport() {
             isMobileView = window.innerWidth <= 768;
             console.log('当前视图:', isMobileView ? '移动端' : '桌面端');
@@ -951,11 +952,21 @@
                 
                 // 确保移动端标签页正确初始化
                 switchMobileTab('songs');
+                
+                // 隐藏桌面布局，显示移动端布局
+                document.querySelector('.mobile-tabs').style.display = 'block';
+                document.querySelector('.songs-section').style.display = 'none';
+                document.querySelector('.playlist-section').style.display = 'none';
             } else {
                 // 桌面端：显示点歌系统页面和桌面布局
                 document.getElementById('karaoke-page').style.display = 'flex';
                 document.getElementById('pricing-page').style.display = 'none';
                 document.getElementById('order-page').style.display = 'none';
+                
+                // 显示桌面布局，隐藏移动端布局
+                document.querySelector('.mobile-tabs').style.display = 'none';
+                document.querySelector('.songs-section').style.display = 'block';
+                document.querySelector('.playlist-section').style.display = 'block';
             }
             
             // 监听窗口大小变化
@@ -966,6 +977,7 @@
                     console.log('视图切换:', isMobileView ? '移动端' : '桌面端');
                     // 重新初始化页面显示
                     showPage('karaoke');
+                    initializeViewport();
                 }
             });
         }
@@ -1016,8 +1028,16 @@
             if (page === 'karaoke') {
                 if (isMobileView) {
                     document.getElementById('karaoke-page').style.display = 'block';
+                    // 确保移动端正确显示
+                    document.querySelector('.mobile-tabs').style.display = 'block';
+                    document.querySelector('.songs-section').style.display = 'none';
+                    document.querySelector('.playlist-section').style.display = 'none';
                 } else {
                     document.getElementById('karaoke-page').style.display = 'flex';
+                    // 确保桌面端正确显示
+                    document.querySelector('.mobile-tabs').style.display = 'none';
+                    document.querySelector('.songs-section').style.display = 'block';
+                    document.querySelector('.playlist-section').style.display = 'block';
                 }
             } else if (page === 'pricing') {
                 document.getElementById('pricing-page').style.display = 'block';
@@ -1035,7 +1055,7 @@
 
         // 事件监听器
         function setupEventListeners() {
-            // 排行榜事件
+            // 排行榜事件 - 修复：为移动端和桌面端都设置事件
             setupChartEvents('charts-view');
             setupChartEvents('charts-view-mobile');
             
@@ -1070,7 +1090,7 @@
             document.getElementById('back-to-charts').addEventListener('click', showChartsView);
             document.getElementById('back-to-charts-mobile').addEventListener('click', showChartsView);
 
-            // 移动端标签页
+            // 移动端标签页 - 修复：增强事件绑定
             document.querySelectorAll('.mobile-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabName = this.dataset.tab;
@@ -1120,16 +1140,31 @@
             }
         }
 
+        // 修复：增强移动端标签页切换
         function switchMobileTab(tabName) {
+            // 更新标签页状态
             document.querySelectorAll('.mobile-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             document.querySelector('.mobile-tab[data-tab="' + tabName + '"]').classList.add('active');
             
+            // 更新内容显示
             document.querySelectorAll('.mobile-tab-content').forEach(content => {
                 content.classList.remove('active');
             });
             document.getElementById('mobile-' + tabName + '-tab').classList.add('active');
+            
+            // 根据标签页加载对应内容
+            if (tabName === 'songs') {
+                // 确保歌曲浏览视图正确显示
+                const activeCategory = document.querySelector('.chart-category.active');
+                if (activeCategory && currentSongs.length === 0) {
+                    loadChart(activeCategory.dataset.category);
+                }
+            } else if (tabName === 'playlist') {
+                // 确保歌单正确渲染
+                renderPlaylist();
+            }
         }
 
         function updateUserUI() {
@@ -1223,19 +1258,18 @@
             }
         }
 
-        // 排行榜功能
+        // 排行榜功能 - 修复：增强移动端支持
         async function loadChart(category) {
             console.log('加载 ' + category + ' 排行榜 第 ' + currentChartPage + ' 页...');
             
-            const songsContainer = isMobileView ? 
-                document.getElementById('songs-container-mobile') : 
-                document.getElementById('songs-container');
-            const pagination = isMobileView ? 
-                document.getElementById('charts-pagination-mobile') : 
-                document.getElementById('charts-pagination');
+            // 修复：根据当前视图获取正确的容器
+            const songsContainer = getCurrentSongsContainer();
+            const pagination = getCurrentPaginationContainer();
             
             if (currentChartPage === 1) {
-                songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
+                if (songsContainer) {
+                    songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
+                }
                 if (pagination) pagination.style.display = 'none';
             }
             
@@ -1262,26 +1296,73 @@
                 songs = removeDuplicateSongs(songs);
                 
                 if (songs.length === 0 && currentChartPage === 1) {
-                    songsContainer.innerHTML = '<div class="error">未找到相关歌曲，请尝试其他分类</div>';
+                    if (songsContainer) {
+                        songsContainer.innerHTML = '<div class="error">未找到相关歌曲，请尝试其他分类</div>';
+                    }
                     return;
                 }
                 
                 if (currentChartPage === 1) {
                     currentSongs = songs;
-                    renderSongs(currentSongs, isMobileView);
                 } else {
                     currentSongs = currentSongs.concat(songs);
-                    renderSongs(currentSongs, isMobileView);
                 }
                 
+                // 修复：渲染到当前视图的容器
+                renderSongsToCurrentContainer(currentSongs);
                 updateChartsPagination();
                 
             } catch (error) {
                 console.error('加载排行榜失败:', error);
                 if (currentChartPage === 1) {
-                    songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                    if (songsContainer) {
+                        songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                    }
                 } else {
                     showMessage('加载更多失败，请重试');
+                }
+            }
+        }
+
+        // 修复：获取当前视图的歌曲容器
+        function getCurrentSongsContainer() {
+            if (isMobileView) {
+                const activeTab = document.querySelector('.mobile-tab.active');
+                if (activeTab && activeTab.dataset.tab === 'songs') {
+                    // 在歌曲浏览标签页
+                    const artistView = document.getElementById('artist-view-mobile');
+                    if (artistView && artistView.style.display !== 'none') {
+                        return document.getElementById('artist-songs-container-mobile');
+                    } else {
+                        return document.getElementById('songs-container-mobile');
+                    }
+                }
+            } else {
+                const artistView = document.getElementById('artist-view');
+                if (artistView && artistView.style.display !== 'none') {
+                    return document.getElementById('artist-songs-container');
+                } else {
+                    return document.getElementById('songs-container');
+                }
+            }
+            return null;
+        }
+
+        // 修复：获取当前视图的分页容器
+        function getCurrentPaginationContainer() {
+            if (isMobileView) {
+                const artistView = document.getElementById('artist-view-mobile');
+                if (artistView && artistView.style.display !== 'none') {
+                    return document.getElementById('artist-pagination-mobile');
+                } else {
+                    return document.getElementById('charts-pagination-mobile');
+                }
+            } else {
+                const artistView = document.getElementById('artist-view');
+                if (artistView && artistView.style.display !== 'none') {
+                    return document.getElementById('artist-pagination');
+                } else {
+                    return document.getElementById('charts-pagination');
                 }
             }
         }
@@ -1293,9 +1374,7 @@
         }
 
         function updateChartsPagination() {
-            const pagination = isMobileView ? 
-                document.getElementById('charts-pagination-mobile') : 
-                document.getElementById('charts-pagination');
+            const pagination = getCurrentPaginationContainer();
             const pageInfo = isMobileView ? 
                 document.getElementById('charts-page-info-mobile') : 
                 document.getElementById('charts-page-info');
@@ -1318,15 +1397,15 @@
         }
 
         function renderArtistsList(category) {
-            const songsContainer = isMobileView ? 
-                document.getElementById('songs-container-mobile') : 
-                document.getElementById('songs-container');
-            const pagination = isMobileView ? 
-                document.getElementById('charts-pagination-mobile') : 
-                document.getElementById('charts-pagination');
+            const songsContainer = getCurrentSongsContainer();
+            const pagination = getCurrentPaginationContainer();
             
-            songsContainer.innerHTML = '';
-            if (pagination) pagination.style.display = 'none';
+            if (songsContainer) {
+                songsContainer.innerHTML = '';
+            }
+            if (pagination) {
+                pagination.style.display = 'none';
+            }
             
             const artists = category === 'chinese-artists' ? CHINESE_ARTISTS : WESTERN_ARTISTS;
             
@@ -1334,15 +1413,19 @@
                 const artistElement = document.createElement('div');
                 artistElement.className = 'song';
                 artistElement.innerHTML = '<div class="song-info"><div class="song-title">' + artist + '</div><div class="song-artist">' + (category === 'chinese-artists' ? '华语歌手' : '欧美歌手') + '</div></div><div class="song-controls"><button class="add-btn" data-artist="' + artist + '">查看歌曲</button></div>';
-                songsContainer.appendChild(artistElement);
+                if (songsContainer) {
+                    songsContainer.appendChild(artistElement);
+                }
             });
             
-            songsContainer.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const artist = this.getAttribute('data-artist');
-                    showArtistView(artist);
+            if (songsContainer) {
+                songsContainer.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const artist = this.getAttribute('data-artist');
+                        showArtistView(artist);
+                    });
                 });
-            });
+            }
         }
 
         // 歌手歌曲加载
@@ -1352,7 +1435,7 @@
                 document.getElementById('artist-songs-container');
             const offset = (page - 1) * SONGS_PER_PAGE;
             
-            if (page === 1) {
+            if (page === 1 && songsContainer) {
                 songsContainer.innerHTML = '<div class="loading">正在加载歌手歌曲...</div>';
             }
             
@@ -1360,7 +1443,9 @@
                 const songs = await searchMusic(artistName, SONGS_PER_PAGE, offset);
                 
                 if (songs.length === 0 && page === 1) {
-                    songsContainer.innerHTML = '<div class="error">未找到该歌手的歌曲</div>';
+                    if (songsContainer) {
+                        songsContainer.innerHTML = '<div class="error">未找到该歌手的歌曲</div>';
+                    }
                     return;
                 }
                 
@@ -1376,7 +1461,9 @@
             } catch (error) {
                 console.error('加载歌手歌曲失败:', error);
                 if (page === 1) {
-                    songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                    if (songsContainer) {
+                        songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                    }
                 } else {
                     showMessage('加载更多失败，请重试');
                     currentArtistPage--;
@@ -1419,6 +1506,8 @@
                 document.getElementById('artist-songs-container-mobile') : 
                 document.getElementById('artist-songs-container');
             
+            if (!songsContainer) return;
+            
             if (currentArtistPage === 1) {
                 songsContainer.innerHTML = '';
             }
@@ -1451,11 +1540,10 @@
             });
         }
 
-        // 通用歌曲渲染
-        function renderSongs(songs, isMobile = false) {
-            const songsContainer = isMobile ? 
-                document.getElementById('songs-container-mobile') : 
-                document.getElementById('songs-container');
+        // 修复：增强歌曲渲染到当前容器
+        function renderSongsToCurrentContainer(songs) {
+            const songsContainer = getCurrentSongsContainer();
+            if (!songsContainer) return;
             
             if (currentChartPage === 1) {
                 songsContainer.innerHTML = '';
@@ -1487,6 +1575,11 @@
                     previewSong(previewUrl);
                 });
             });
+        }
+
+        // 通用歌曲渲染（保留兼容性）
+        function renderSongs(songs, isMobile = false) {
+            renderSongsToCurrentContainer(songs);
         }
 
         // 工具函数
@@ -1600,21 +1693,25 @@
                 showArtistView(query);
                 return;
             }
-            const songsContainer = isMobileView ? 
-                document.getElementById('songs-container-mobile') : 
-                document.getElementById('songs-container');
-            songsContainer.innerHTML = '<div class="loading">搜索中...</div>';
+            const songsContainer = getCurrentSongsContainer();
+            if (songsContainer) {
+                songsContainer.innerHTML = '<div class="loading">搜索中...</div>';
+            }
             try {
                 currentSongs = await searchMusic(query, 50);
                 if (currentSongs.length === 0) {
-                    songsContainer.innerHTML = '<div class="error">未找到相关歌曲</div>';
+                    if (songsContainer) {
+                        songsContainer.innerHTML = '<div class="error">未找到相关歌曲</div>';
+                    }
                     return;
                 }
-                renderSongs(currentSongs, isMobileView);
+                renderSongsToCurrentContainer(currentSongs);
                 showMessage('找到 ' + currentSongs.length + ' 首相关歌曲');
             } catch (error) {
                 console.error('搜索失败:', error);
-                songsContainer.innerHTML = '<div class="error">搜索失败，请重试</div>';
+                if (songsContainer) {
+                    songsContainer.innerHTML = '<div class="error">搜索失败，请重试</div>';
+                }
             }
         }
 
