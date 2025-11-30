@@ -1369,32 +1369,43 @@ async function searchMusic(term, limit = 50, offset = 0) {
             }
         }
 
-        // 修复：正确的容器选择逻辑
-        function getCurrentSongsContainer() {
-            if (isMobileView) {
-                const activeTab = document.querySelector('.mobile-tab.active');
-                if (activeTab && activeTab.dataset.tab === 'songs') {
-                    const artistView = document.getElementById('artist-view-mobile');
-                    
-                    // 修复：使用计算样式准确检查显示状态
-                    const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
-                    
-                    if (artistView && artistViewComputed !== 'none') {
-                        return document.getElementById('artist-songs-container-mobile');
-                    } else {
-                        return document.getElementById('songs-container-mobile');
-                    }
-                }
+        // 修复容器选择逻辑
+function getCurrentSongsContainer() {
+    if (isMobileView) {
+        const activeTab = document.querySelector('.mobile-tab.active');
+        if (activeTab && activeTab.dataset.tab === 'songs') {
+            const artistView = document.getElementById('artist-view-mobile');
+            
+            // 修复：使用计算样式准确检查显示状态
+            const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
+            
+            if (artistView && artistViewComputed !== 'none') {
+                return document.getElementById('artist-songs-container-mobile');
             } else {
-                const artistView = document.getElementById('artist-view');
-                if (artistView && artistView.style.display !== 'none') {
-                    return document.getElementById('artist-songs-container');
-                } else {
-                    return document.getElementById('songs-container');
-                }
+                return document.getElementById('songs-container-mobile');
             }
-            return null;
         }
+    } else {
+        // 修复桌面端逻辑
+        const artistView = document.getElementById('artist-view');
+        const chartsView = document.getElementById('charts-view');
+        
+        // 使用计算样式，不要依赖内联样式
+        const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
+        const chartsViewComputed = chartsView ? window.getComputedStyle(chartsView).display : 'none';
+        
+        console.log('桌面端容器选择调试:');
+        console.log('artistView计算显示:', artistViewComputed);
+        console.log('chartsView计算显示:', chartsViewComputed);
+        
+        if (artistViewComputed !== 'none') {
+            return document.getElementById('artist-songs-container');
+        } else {
+            return document.getElementById('songs-container');
+        }
+    }
+    return null;
+}
 
         // 修复：获取当前视图的分页容器
         function getCurrentPaginationContainer() {
