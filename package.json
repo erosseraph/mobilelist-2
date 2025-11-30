@@ -1,6 +1,7 @@
 {
   "name": "mobilelist-2",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "专业歌厅定制服务 - 移动端应用",
   "main": "index.html",
   "scripts": {
