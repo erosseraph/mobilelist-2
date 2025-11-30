@@ -148,6 +148,7 @@
             overflow-y: auto;
         }
         
+        /* 移动端标签页布局 - 默认隐藏 */
         .mobile-tabs {
             display: none;
         }
@@ -540,6 +541,7 @@
             color: #ff6b6b;
         }
 
+        /* 移动端响应式设计 */
         @media (max-width: 768px) {
             .container {
                 padding: 0 10px;
@@ -554,6 +556,22 @@
                 font-size: 1.4rem;
             }
             
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .user-section {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            /* 移动端显示标签页，隐藏桌面布局 */
             .mobile-tabs {
                 display: block;
             }
@@ -570,20 +588,77 @@
                 display: block;
             }
             
+            /* 移动端搜索框优化 */
             .search-container {
                 flex-direction: column;
             }
             
+            .search-input {
+                margin-bottom: 10px;
+            }
+            
+            /* 移动端歌曲列表优化 */
             .songs-container {
                 max-height: 400px;
             }
             
+            .song {
+                padding: 10px 12px;
+            }
+            
+            .song-title {
+                font-size: 0.9rem;
+            }
+            
+            .song-artist {
+                font-size: 0.8rem;
+            }
+            
+            /* 移动端分页优化 */
+            .pagination {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .load-more-btn {
+                width: 100%;
+            }
+            
+            /* 移动端价格页面优化 */
             .pricing-container {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
             
             .shipping-options {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        /* 小屏幕手机优化 */
+        @media (max-width: 480px) {
+            .charts-container {
+                gap: 5px;
+            }
+            
+            .chart-category {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .mobile-tab {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+            
+            .playlist-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .playlist-count {
+                font-size: 1rem;
             }
         }
     </style>
@@ -624,6 +699,7 @@
         
         <div class="page-container">
             <div id="karaoke-page">
+                <!-- 桌面端布局 -->
                 <div class="songs-section">
                     <div id="charts-view">
                         <div class="charts-container">
@@ -671,6 +747,7 @@
                     </div>
                 </div>
 
+                <!-- 移动端标签页布局 -->
                 <div class="mobile-tabs">
                     <div class="mobile-tab-header">
                         <div class="mobile-tab active" data-tab="songs">🎵 歌曲浏览</div>
@@ -728,7 +805,7 @@
                 </div>
             </div>
             
-            <div id="pricing-page">
+            <div id="pricing-page" style="display: none;">
                 <div class="pricing-container">
                     <div class="pricing-card">
                         <div class="plan-name">基础版</div>
@@ -801,7 +878,7 @@
                 </div>
             </div>
             
-            <div id="order-page">
+            <div id="order-page" style="display: none;">
                 <h2>提交订单</h2>
                 <p>订单功能开发中...</p>
             </div>
@@ -853,16 +930,44 @@
         // 页面初始化
         document.addEventListener('DOMContentLoaded', function() {
             console.log('初始化应用...');
-            checkViewport();
-            window.addEventListener('resize', checkViewport);
+            initializeViewport();
             initializeFirebase();
             initPageNavigation();
             setupEventListeners();
             loadChart('chinese-pop');
         });
 
-        function checkViewport() {
+        // 修复：专门处理视口初始化
+        function initializeViewport() {
             isMobileView = window.innerWidth <= 768;
+            console.log('当前视图:', isMobileView ? '移动端' : '桌面端');
+            
+            // 确保页面正确显示
+            if (isMobileView) {
+                // 移动端：显示点歌系统页面和移动标签页
+                document.getElementById('karaoke-page').style.display = 'block';
+                document.getElementById('pricing-page').style.display = 'none';
+                document.getElementById('order-page').style.display = 'none';
+                
+                // 确保移动端标签页正确初始化
+                switchMobileTab('songs');
+            } else {
+                // 桌面端：显示点歌系统页面和桌面布局
+                document.getElementById('karaoke-page').style.display = 'flex';
+                document.getElementById('pricing-page').style.display = 'none';
+                document.getElementById('order-page').style.display = 'none';
+            }
+            
+            // 监听窗口大小变化
+            window.addEventListener('resize', function() {
+                const newIsMobile = window.innerWidth <= 768;
+                if (newIsMobile !== isMobileView) {
+                    isMobileView = newIsMobile;
+                    console.log('视图切换:', isMobileView ? '移动端' : '桌面端');
+                    // 重新初始化页面显示
+                    showPage('karaoke');
+                }
+            });
         }
 
         // Firebase初始化
@@ -902,14 +1007,22 @@
         }
         
         function showPage(page) {
+            // 隐藏所有页面
             document.getElementById('karaoke-page').style.display = 'none';
             document.getElementById('pricing-page').style.display = 'none';
             document.getElementById('order-page').style.display = 'none';
             
+            // 显示目标页面
             if (page === 'karaoke') {
-                document.getElementById('karaoke-page').style.display = isMobileView ? 'block' : 'flex';
+                if (isMobileView) {
+                    document.getElementById('karaoke-page').style.display = 'block';
+                } else {
+                    document.getElementById('karaoke-page').style.display = 'flex';
+                }
             } else if (page === 'pricing') {
                 document.getElementById('pricing-page').style.display = 'block';
+            } else if (page === 'order') {
+                document.getElementById('order-page').style.display = 'block';
             }
         }
         
