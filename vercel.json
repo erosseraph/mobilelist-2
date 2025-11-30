@@ -18,7 +18,7 @@
       "use": "@vercel/static"
     },
     {
-      "src": "api/*.js",
+      "src": "api/itunes-proxy.js",
       "use": "@vercel/node"
     }
   ],
@@ -33,12 +33,13 @@
       }
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
+      "src": "/api/itunes-proxy",
+      "dest": "/api/itunes-proxy.js",
+      "methods": ["GET", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+        "Access-Control-Allow-Methods": "GET,OPTIONS",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
       }
     },
