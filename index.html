@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>定制你的专属歌厅 v2.1.1</title>
+    <title>定制你的专属歌厅 v2.1.0</title>
     
     <meta name="theme-color" content="#1a2a6c">
     <meta name="description" content="专业歌厅定制服务，打造您的专属音乐空间">
@@ -1363,14 +1363,17 @@
             }
         }
 
-        // 修复：获取当前视图的歌曲容器
+        // 修复：正确的容器选择逻辑
         function getCurrentSongsContainer() {
             if (isMobileView) {
                 const activeTab = document.querySelector('.mobile-tab.active');
                 if (activeTab && activeTab.dataset.tab === 'songs') {
-                    // 在歌曲浏览标签页
                     const artistView = document.getElementById('artist-view-mobile');
-                    if (artistView && artistView.style.display !== 'none') {
+                    
+                    // 修复：使用计算样式准确检查显示状态
+                    const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
+                    
+                    if (artistView && artistViewComputed !== 'none') {
                         return document.getElementById('artist-songs-container-mobile');
                     } else {
                         return document.getElementById('songs-container-mobile');
