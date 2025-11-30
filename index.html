@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>定制你的专属歌厅 v2.0.0</title>
+    <title>定制你的专属歌厅 v2.1.0</title>
     
     <!-- PWA 配置 -->
     <meta name="theme-color" content="#1a2a6c">
@@ -128,6 +128,33 @@
             cursor: pointer;
             font-size: 0.8rem;
         }
+
+        /* 版本切换按钮 */
+        .version-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+        
+        .switch-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin: 0 5px;
+        }
+        
+        .switch-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
         
         /* 页面容器 */
         .page-container {
@@ -154,7 +181,7 @@
             border-radius: 15px;
             padding: 20px;
             backdrop-filter: blur(10px);
-            max-height: 600px;
+            max-height: 700px;
             overflow-y: auto;
         }
         
@@ -218,7 +245,7 @@
         
         /* 歌曲列表样式 */
         .songs-container {
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -272,6 +299,79 @@
         .preview-btn:hover, .add-btn:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        /* 分页控件样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+        }
+        
+        .load-more-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .load-more-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .load-more-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* 歌手搜索页面样式 */
+        .artist-search-view {
+            display: none;
+        }
+        
+        .artist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-to-charts {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .back-to-charts:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .artist-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .song-count {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
         
         /* 歌单样式 */
         .playlist-header {
@@ -302,7 +402,7 @@
         
         .playlist-items {
             min-height: 200px;
-            max-height: 400px;
+            max-height: 500px;
             overflow-y: auto;
         }
         
@@ -594,11 +694,17 @@
         </div>
     </div>
 
+    <!-- 版本切换器 -->
+    <div class="version-switcher">
+        <span>版本: v2.1.0</span>
+        <button class="switch-btn" id="switch-to-old">切换到旧版</button>
+    </div>
+
     <div class="container">
         <!-- 导航栏 -->
         <nav class="navbar">
             <div class="logo">
-                🎤 定制你的专属歌厅 v2.0.0
+                🎤 定制你的专属歌厅 v2.1.0
             </div>
             
             <div class="nav-buttons">
@@ -624,22 +730,47 @@
             <!-- 点歌系统页面 -->
             <div id="karaoke-page">
                 <div class="songs-section">
-                    <div class="charts-container">
-                        <div class="chart-category active" data-category="chinese-pop">华语流行</div>
-                        <div class="chart-category" data-category="western-pop">欧美流行</div>
-                        <div class="chart-category" data-category="chinese-dj">中文DJ</div>
-                        <div class="chart-category" data-category="chinese-artists">华语歌手</div>
-                        <div class="chart-category" data-category="western-artists">欧美歌手</div>
+                    <!-- 排行榜视图 -->
+                    <div id="charts-view">
+                        <div class="charts-container">
+                            <div class="chart-category active" data-category="chinese-pop">华语流行</div>
+                            <div class="chart-category" data-category="western-pop">欧美流行</div>
+                            <div class="chart-category" data-category="chinese-artists">华语歌手</div>
+                            <div class="chart-category" data-category="western-artists">欧美歌手</div>
+                        </div>
+                        
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="search-input" placeholder="搜索歌曲名称、歌手...">
+                            <button class="search-btn" id="search-btn">搜索</button>
+                            <button class="clear-btn" id="clear-btn">清空</button>
+                        </div>
+                        
+                        <div class="songs-container" id="songs-container">
+                            <div class="loading">正在加载歌曲...</div>
+                        </div>
+                        
+                        <div class="pagination" id="charts-pagination">
+                            <button class="load-more-btn" id="load-more-charts">加载更多</button>
+                            <div class="page-info" id="charts-page-info">第 1 页</div>
+                        </div>
                     </div>
                     
-                    <div class="search-container">
-                        <input type="text" class="search-input" id="search-input" placeholder="搜索歌曲名称、歌手...">
-                        <button class="search-btn" id="search-btn">搜索</button>
-                        <button class="clear-btn" id="clear-btn">清空</button>
-                    </div>
-                    
-                    <div class="songs-container" id="songs-container">
-                        <div class="loading">正在加载歌曲...</div>
+                    <!-- 歌手搜索视图 -->
+                    <div class="artist-search-view" id="artist-view">
+                        <div class="artist-header">
+                            <button class="back-to-charts" id="back-to-charts">← 返回排行榜</button>
+                            <div class="artist-name" id="artist-name">歌手名称</div>
+                            <div class="song-count" id="artist-song-count">0 首歌曲</div>
+                        </div>
+                        
+                        <div class="songs-container" id="artist-songs-container">
+                            <div class="loading">正在加载歌手歌曲...</div>
+                        </div>
+                        
+                        <div class="pagination" id="artist-pagination">
+                            <button class="load-more-btn" id="load-more-artist">加载更多</button>
+                            <div class="page-info" id="artist-page-info">第 1 页</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -769,9 +900,32 @@
         let playlist = [];
         let firebaseApp, auth, firestore, analytics;
 
+        // ==================== 新版功能变量 ====================
+        const CHINESE_ARTISTS = [
+            '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '蔡依林', 
+            '陈奕迅', '李荣浩', '张惠妹', '王力宏', '孙燕姿',
+            '张杰', '王心凌', '杨丞琳', '吴青峰', '张韶涵',
+            '许嵩', '毛不易', '周深', '华晨宇', '刘德华',
+            '张学友', '王菲', '那英', '张信哲', '林忆莲'
+        ];
+
+        const WESTERN_ARTISTS = [
+            'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
+            'The Weeknd', 'Dua Lipa', 'Bruno Mars', 'Drake', 'Post Malone',
+            'Doja Cat', 'Olivia Rodrigo', 'Harry Styles', 'Coldplay', 'Maroon 5',
+            'Lady Gaga', 'Rihanna', 'Katy Perry', 'Adele', 'Beyoncé',
+            'Shawn Mendes', 'Charlie Puth', 'Sia', 'Eminem', 'Imagine Dragons'
+        ];
+
+        // 分页状态
+        let currentChartPage = 1;
+        let currentArtistPage = 1;
+        let currentArtist = '';
+        const SONGS_PER_PAGE = 50;
+
         // ==================== 页面初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 初始化应用...');
+            console.log('🚀 初始化应用 v2.1.0...');
             
             // 初始化Firebase
             initializeFirebase();
@@ -784,6 +938,13 @@
             
             // 加载默认排行榜
             loadChart('chinese-pop');
+            
+            // 版本切换
+            document.getElementById('switch-to-old').addEventListener('click', function() {
+                if(confirm('确定要切换回旧版本吗？新版本功能将无法使用。')) {
+                    window.location.href = 'index_old.html'; // 假设旧版本文件名为 index_old.html
+                }
+            });
         });
 
         // ==================== Firebase 初始化 ====================
@@ -868,6 +1029,7 @@
             document.querySelectorAll('.chart-category').forEach(chart => {
                 chart.addEventListener('click', function() {
                     const category = this.dataset.category;
+                    currentChartPage = 1;
                     loadChart(category);
                     
                     // 更新活跃状态
@@ -920,6 +1082,11 @@
                     alert(`您选择了 ${planName}\n价格: ${price}\n请先创建歌单然后提交订单。`);
                 });
             });
+
+            // 新版功能事件
+            document.getElementById('load-more-charts').addEventListener('click', loadMoreCharts);
+            document.getElementById('load-more-artist').addEventListener('click', loadMoreArtist);
+            document.getElementById('back-to-charts').addEventListener('click', showChartsView);
         }
 
         function updateUserUI() {
@@ -947,42 +1114,29 @@
             }
         }
 
-        // ==================== 搜索配置 ====================
-        function getSearchConfig(category) {
-            const configs = {
-                'chinese-pop': {
-                    terms: ['周杰伦', '林俊杰', '邓紫棋', '华语流行', '中文歌曲'],
-                    country: 'CN',
-                    description: '热门华语歌曲榜'
-                },
-                'western-pop': {
-                    terms: ['taylor swift', 'ed sheeran', 'ariana grande', 'pop music'],
-                    country: 'US',
-                    description: '欧美流行热歌'
-                },
-                'chinese-dj': {
-                    terms: ['中文DJ', '电子舞曲', 'remix', '电音'],
-                    country: 'CN',
-                    description: '热门电子舞曲'
-                },
-                'chinese-artists': {
-                    type: 'artists',
-                    artists: ['周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿']
-                },
-                'western-artists': {
-                    type: 'artists',
-                    artists: ['Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish', 'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars']
-                }
-            };
+        // ==================== 视图切换功能 ====================
+        function showChartsView() {
+            document.getElementById('charts-view').style.display = 'block';
+            document.getElementById('artist-view').style.display = 'none';
+        }
+
+        function showArtistView(artistName) {
+            document.getElementById('charts-view').style.display = 'none';
+            document.getElementById('artist-view').style.display = 'block';
             
-            return configs[category] || configs['chinese-pop'];
+            currentArtist = artistName;
+            currentArtistPage = 1;
+            document.getElementById('artist-name').textContent = artistName;
+            document.getElementById('artist-song-count').textContent = '加载中...';
+            
+            loadArtistSongs(artistName, 1);
         }
 
         // ==================== iTunes API 搜索功能 ====================
-        async function searchMusic(term, limit = 50) {
+        async function searchMusic(term, limit = 50, offset = 0) {
             try {
                 const encodedTerm = encodeURIComponent(term);
-                const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=musicTrack&limit=${limit}&country=CN&lang=zh_cn`;
+                const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=musicTrack&limit=${limit}&offset=${offset}&country=CN&lang=zh_cn`;
                 
                 console.log('🔍 搜索请求:', url);
                 
@@ -1021,48 +1175,100 @@
 
         // ==================== 排行榜功能 ====================
         async function loadChart(category) {
-            console.log(`📊 加载 ${category} 排行榜...`);
+            console.log(`📊 加载 ${category} 排行榜 第 ${currentChartPage} 页...`);
             
             const songsContainer = document.getElementById('songs-container');
-            songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
+            const pagination = document.getElementById('charts-pagination');
+            
+            if (currentChartPage === 1) {
+                songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
+                pagination.style.display = 'none';
+            }
             
             try {
-                const config = getSearchConfig(category);
+                let songs = [];
                 
-                if (config.type === 'artists') {
-                    // 如果是歌手页面，显示歌手列表
-                    renderArtistsList(config.artists);
+                if (category === 'chinese-artists' || category === 'western-artists') {
+                    // 歌手列表页面
+                    renderArtistsList(category);
                     return;
-                }
-                
-                // 使用第一个搜索词进行搜索
-                const searchTerm = config.terms[0];
-                currentSongs = await searchMusic(searchTerm, 30);
-                
-                if (currentSongs.length === 0) {
-                    // 如果第一个搜索词没结果，尝试其他搜索词
-                    for (let i = 1; i < config.terms.length; i++) {
-                        if (currentSongs.length > 0) break;
-                        currentSongs = await searchMusic(config.terms[i], 20);
+                } else if (category === 'chinese-pop') {
+                    // 华语流行 - 搜索多个热门歌手
+                    const artistsToSearch = CHINESE_ARTISTS.slice(0, 8); // 前8个歌手
+                    for (let artist of artistsToSearch) {
+                        const artistSongs = await searchMusic(artist, 10, (currentChartPage - 1) * 5);
+                        songs = songs.concat(artistSongs);
+                    }
+                } else if (category === 'western-pop') {
+                    // 欧美流行 - 搜索多个热门歌手
+                    const artistsToSearch = WESTERN_ARTISTS.slice(0, 8); // 前8个歌手
+                    for (let artist of artistsToSearch) {
+                        const artistSongs = await searchMusic(artist, 10, (currentChartPage - 1) * 5);
+                        songs = songs.concat(artistSongs);
                     }
                 }
                 
-                if (currentSongs.length === 0) {
+                // 去重
+                songs = removeDuplicateSongs(songs);
+                
+                if (songs.length === 0 && currentChartPage === 1) {
                     songsContainer.innerHTML = '<div class="error">未找到相关歌曲，请尝试其他分类</div>';
                     return;
                 }
                 
-                renderSongs(currentSongs);
+                if (currentChartPage === 1) {
+                    currentSongs = songs;
+                    renderSongs(currentSongs);
+                } else {
+                    currentSongs = currentSongs.concat(songs);
+                    renderSongs(currentSongs);
+                }
+                
+                // 更新分页信息
+                updateChartsPagination();
                 
             } catch (error) {
                 console.error('加载排行榜失败:', error);
-                songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                if (currentChartPage === 1) {
+                    songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                } else {
+                    showMessage('加载更多失败，请重试');
+                }
             }
         }
 
-        function renderArtistsList(artists) {
+        function loadMoreCharts() {
+            currentChartPage++;
+            const activeCategory = document.querySelector('.chart-category.active').dataset.category;
+            loadChart(activeCategory);
+        }
+
+        function updateChartsPagination() {
+            const pagination = document.getElementById('charts-pagination');
+            const pageInfo = document.getElementById('charts-page-info');
+            const loadMoreBtn = document.getElementById('load-more-charts');
+            
+            pagination.style.display = 'flex';
+            pageInfo.textContent = `第 ${currentChartPage} 页 • ${currentSongs.length} 首歌曲`;
+            
+            // 简单限制：最多加载3页
+            if (currentChartPage >= 3) {
+                loadMoreBtn.disabled = true;
+                loadMoreBtn.textContent = '已加载全部';
+            } else {
+                loadMoreBtn.disabled = false;
+                loadMoreBtn.textContent = '加载更多';
+            }
+        }
+
+        function renderArtistsList(category) {
             const songsContainer = document.getElementById('songs-container');
+            const pagination = document.getElementById('charts-pagination');
+            
             songsContainer.innerHTML = '';
+            pagination.style.display = 'none';
+            
+            const artists = category === 'chinese-artists' ? CHINESE_ARTISTS : WESTERN_ARTISTS;
             
             artists.forEach(artist => {
                 const artistElement = document.createElement('div');
@@ -1070,28 +1276,90 @@
                 artistElement.innerHTML = `
                     <div class="song-info">
                         <div class="song-title">${artist}</div>
-                        <div class="song-artist">歌手</div>
+                        <div class="song-artist">${category === 'chinese-artists' ? '华语歌手' : '欧美歌手'}</div>
                     </div>
                     <div class="song-controls">
-                        <button class="add-btn" data-artist="${artist}">搜索歌曲</button>
+                        <button class="add-btn" data-artist="${artist}">查看歌曲</button>
                     </div>
                 `;
                 songsContainer.appendChild(artistElement);
             });
             
-            // 添加搜索按钮事件
+            // 添加查看歌曲按钮事件
             document.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const artist = this.dataset.artist;
-                    document.getElementById('search-input').value = artist;
-                    performSearch();
+                    showArtistView(artist);
                 });
             });
         }
 
-        function renderSongs(songs) {
-            const songsContainer = document.getElementById('songs-container');
-            songsContainer.innerHTML = '';
+        // ==================== 歌手歌曲加载 ====================
+        async function loadArtistSongs(artistName, page) {
+            const songsContainer = document.getElementById('artist-songs-container');
+            const offset = (page - 1) * SONGS_PER_PAGE;
+            
+            if (page === 1) {
+                songsContainer.innerHTML = '<div class="loading">正在加载歌手歌曲...</div>';
+            }
+            
+            try {
+                const songs = await searchMusic(artistName, SONGS_PER_PAGE, offset);
+                
+                if (songs.length === 0 && page === 1) {
+                    songsContainer.innerHTML = '<div class="error">未找到该歌手的歌曲</div>';
+                    return;
+                }
+                
+                if (page === 1) {
+                    currentSongs = songs;
+                } else {
+                    currentSongs = currentSongs.concat(songs);
+                }
+                
+                renderArtistSongs(currentSongs);
+                updateArtistPagination(songs.length);
+                
+            } catch (error) {
+                console.error('加载歌手歌曲失败:', error);
+                if (page === 1) {
+                    songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                } else {
+                    showMessage('加载更多失败，请重试');
+                currentArtistPage--; // 回退页码
+                }
+            }
+        }
+
+        function loadMoreArtist() {
+            currentArtistPage++;
+            loadArtistSongs(currentArtist, currentArtistPage);
+        }
+
+        function updateArtistPagination(newSongsCount) {
+            const pageInfo = document.getElementById('artist-page-info');
+            const loadMoreBtn = document.getElementById('load-more-artist');
+            const songCount = document.getElementById('artist-song-count');
+            
+            pageInfo.textContent = `第 ${currentArtistPage} 页 • ${currentSongs.length} 首歌曲`;
+            songCount.textContent = `${currentSongs.length} 首歌曲`;
+            
+            // 最多加载200首或4页
+            if (currentSongs.length >= 200 || newSongsCount < SONGS_PER_PAGE) {
+                loadMoreBtn.disabled = true;
+                loadMoreBtn.textContent = '已加载全部';
+            } else {
+                loadMoreBtn.disabled = false;
+                loadMoreBtn.textContent = '加载更多';
+            }
+        }
+
+        function renderArtistSongs(songs) {
+            const songsContainer = document.getElementById('artist-songs-container');
+            
+            if (currentArtistPage === 1) {
+                songsContainer.innerHTML = '';
+            }
             
             songs.forEach(song => {
                 const songElement = document.createElement('div');
@@ -1112,10 +1380,12 @@
             
             // 添加歌曲点击事件
             document.querySelectorAll('.add-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const songId = this.dataset.id;
-                    addSongToPlaylist(songId);
-                });
+                if (btn.dataset.id) {
+                    btn.addEventListener('click', function() {
+                        const songId = this.dataset.id;
+                        addSongToPlaylist(songId);
+                    });
+                }
             });
             
             // 添加试听按钮事件
@@ -1124,6 +1394,63 @@
                     const previewUrl = this.dataset.url;
                     previewSong(previewUrl);
                 });
+            });
+        }
+
+        // ==================== 通用歌曲渲染 ====================
+        function renderSongs(songs) {
+            const songsContainer = document.getElementById('songs-container');
+            
+            if (currentChartPage === 1) {
+                songsContainer.innerHTML = '';
+            }
+            
+            songs.forEach(song => {
+                const songElement = document.createElement('div');
+                songElement.className = 'song';
+                songElement.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                        <div class="song-album">${song.album}</div>
+                    </div>
+                    <div class="song-controls">
+                        ${song.previewUrl ? `<button class="preview-btn" data-url="${song.previewUrl}">▶️</button>` : ''}
+                        <button class="add-btn" data-id="${song.id}">+</button>
+                    </div>
+                `;
+                songsContainer.appendChild(songElement);
+            });
+            
+            // 添加歌曲点击事件
+            document.querySelectorAll('.add-btn').forEach(btn => {
+                if (btn.dataset.id) {
+                    btn.addEventListener('click', function() {
+                        const songId = this.dataset.id;
+                        addSongToPlaylist(songId);
+                    });
+                }
+            });
+            
+            // 添加试听按钮事件
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const previewUrl = this.dataset.url;
+                    previewSong(previewUrl);
+                });
+            });
+        }
+
+        // ==================== 工具函数 ====================
+        function removeDuplicateSongs(songs) {
+            const seen = new Set();
+            return songs.filter(song => {
+                const key = `${song.id}-${song.title}-${song.artist}`;
+                if (seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
+                return true;
             });
         }
 
@@ -1228,6 +1555,14 @@
             
             if (!query) {
                 showMessage('请输入搜索关键词');
+                return;
+            }
+            
+            // 检查是否是歌手搜索
+            const isArtistSearch = CHINESE_ARTISTS.includes(query) || WESTERN_ARTISTS.includes(query);
+            
+            if (isArtistSearch) {
+                showArtistView(query);
                 return;
             }
             
