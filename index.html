@@ -161,7 +161,7 @@
             min-height: 600px;
         }
         
-        /* 点歌系统页面 */
+        /* 点歌系统页面 - 桌面端布局 */
         #karaoke-page {
             display: flex;
             gap: 20px;
@@ -183,6 +183,41 @@
             backdrop-filter: blur(10px);
             max-height: 700px;
             overflow-y: auto;
+        }
+        
+        /* 移动端标签页布局 */
+        .mobile-tabs {
+            display: none;
+        }
+        
+        .mobile-tab-header {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .mobile-tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .mobile-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom-color: #fdbb2d;
+        }
+        
+        .mobile-tab-content {
+            display: none;
+        }
+        
+        .mobile-tab-content.active {
+            display: block;
         }
         
         /* 排行榜样式 */
@@ -672,6 +707,140 @@
             opacity: 0.8;
             color: #ff6b6b;
         }
+
+        /* 移动端响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                padding: 10px 0;
+            }
+            
+            .logo {
+                font-size: 1.4rem;
+            }
+            
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-btn {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .user-section {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            /* 移动端标签页布局 */
+            .mobile-tabs {
+                display: block;
+            }
+            
+            #karaoke-page {
+                flex-direction: column;
+            }
+            
+            .songs-section, .playlist-section {
+                display: none;
+            }
+            
+            .mobile-tab-content.active {
+                display: block;
+            }
+            
+            /* 移动端搜索框优化 */
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                margin-bottom: 10px;
+            }
+            
+            /* 移动端歌曲列表优化 */
+            .songs-container {
+                max-height: 400px;
+            }
+            
+            .song {
+                padding: 10px 12px;
+            }
+            
+            .song-title {
+                font-size: 0.9rem;
+            }
+            
+            .song-artist {
+                font-size: 0.8rem;
+            }
+            
+            /* 移动端分页优化 */
+            .pagination {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .load-more-btn {
+                width: 100%;
+            }
+            
+            /* 移动端价格页面优化 */
+            .pricing-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .shipping-options {
+                grid-template-columns: 1fr;
+            }
+            
+            /* 移动端版本切换器优化 */
+            .version-switcher {
+                bottom: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
+            
+            .switch-btn {
+                padding: 6px 12px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* 小屏幕手机优化 */
+        @media (max-width: 480px) {
+            .charts-container {
+                gap: 5px;
+            }
+            
+            .chart-category {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .mobile-tab {
+                padding: 12px 8px;
+                font-size: 0.9rem;
+            }
+            
+            .playlist-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .playlist-count {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -729,6 +898,7 @@
         <div class="page-container">
             <!-- 点歌系统页面 -->
             <div id="karaoke-page">
+                <!-- 桌面端布局 -->
                 <div class="songs-section">
                     <!-- 排行榜视图 -->
                     <div id="charts-view">
@@ -782,6 +952,75 @@
                     
                     <div class="playlist-items" id="playlist-items">
                         <div class="empty-playlist">歌单为空，请从左侧添加歌曲</div>
+                    </div>
+                </div>
+
+                <!-- 移动端标签页布局 -->
+                <div class="mobile-tabs">
+                    <div class="mobile-tab-header">
+                        <div class="mobile-tab active" data-tab="songs">🎵 歌曲浏览</div>
+                        <div class="mobile-tab" data-tab="playlist">📋 我的歌单 <span id="mobile-playlist-count">(0)</span></div>
+                    </div>
+                    
+                    <div class="mobile-tab-content active" id="mobile-songs-tab">
+                        <!-- 移动端歌曲浏览内容 -->
+                        <div class="songs-section">
+                            <div id="charts-view-mobile">
+                                <div class="charts-container">
+                                    <div class="chart-category active" data-category="chinese-pop">华语流行</div>
+                                    <div class="chart-category" data-category="western-pop">欧美流行</div>
+                                    <div class="chart-category" data-category="chinese-artists">华语歌手</div>
+                                    <div class="chart-category" data-category="western-artists">欧美歌手</div>
+                                </div>
+                                
+                                <div class="search-container">
+                                    <input type="text" class="search-input" id="search-input-mobile" placeholder="搜索歌曲名称、歌手...">
+                                    <button class="search-btn" id="search-btn-mobile">搜索</button>
+                                    <button class="clear-btn" id="clear-btn-mobile">清空</button>
+                                </div>
+                                
+                                <div class="songs-container" id="songs-container-mobile">
+                                    <div class="loading">正在加载歌曲...</div>
+                                </div>
+                                
+                                <div class="pagination" id="charts-pagination-mobile">
+                                    <button class="load-more-btn" id="load-more-charts-mobile">加载更多</button>
+                                    <div class="page-info" id="charts-page-info-mobile">第 1 页</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 移动端歌手搜索视图 -->
+                            <div class="artist-search-view" id="artist-view-mobile">
+                                <div class="artist-header">
+                                    <button class="back-to-charts" id="back-to-charts-mobile">← 返回排行榜</button>
+                                    <div class="artist-name" id="artist-name-mobile">歌手名称</div>
+                                    <div class="song-count" id="artist-song-count-mobile">0 首歌曲</div>
+                                </div>
+                                
+                                <div class="songs-container" id="artist-songs-container-mobile">
+                                    <div class="loading">正在加载歌手歌曲...</div>
+                                </div>
+                                
+                                <div class="pagination" id="artist-pagination-mobile">
+                                    <button class="load-more-btn" id="load-more-artist-mobile">加载更多</button>
+                                    <div class="page-info" id="artist-page-info-mobile">第 1 页</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mobile-tab-content" id="mobile-playlist-tab">
+                        <!-- 移动端歌单内容 -->
+                        <div class="playlist-section">
+                            <div class="playlist-header">
+                                <div class="playlist-count">我的歌单 <span id="mobile-playlist-count-display">(0)</span></div>
+                                <button class="share-btn" id="share-btn-mobile">分享歌单</button>
+                            </div>
+                            
+                            <div class="playlist-items" id="playlist-items-mobile">
+                                <div class="empty-playlist">歌单为空，请从歌曲浏览添加歌曲</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -923,9 +1162,16 @@
         let currentArtist = '';
         const SONGS_PER_PAGE = 50;
 
+        // 移动端状态
+        let isMobileView = window.innerWidth <= 768;
+
         // ==================== 页面初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 初始化应用 v2.1.0...');
+            
+            // 检测屏幕尺寸
+            checkViewport();
+            window.addEventListener('resize', checkViewport);
             
             // 初始化Firebase
             initializeFirebase();
@@ -942,10 +1188,23 @@
             // 版本切换
             document.getElementById('switch-to-old').addEventListener('click', function() {
                 if(confirm('确定要切换回旧版本吗？新版本功能将无法使用。')) {
-                    window.location.href = 'index_old.html'; // 假设旧版本文件名为 index_old.html
+                    window.location.href = 'index_old.html';
                 }
             });
         });
+
+        // 检测视口大小
+        function checkViewport() {
+            isMobileView = window.innerWidth <= 768;
+            if (isMobileView) {
+                // 确保移动端标签页正确显示
+                const songsTab = document.getElementById('mobile-songs-tab');
+                const playlistTab = document.getElementById('mobile-playlist-tab');
+                if (!songsTab.classList.contains('active') && !playlistTab.classList.contains('active')) {
+                    songsTab.classList.add('active');
+                }
+            }
+        }
 
         // ==================== Firebase 初始化 ====================
         function initializeFirebase() {
@@ -1008,7 +1267,7 @@
             
             // 显示目标页面
             if (page === 'karaoke') {
-                karaokePage.style.display = 'flex';
+                karaokePage.style.display = isMobileView ? 'block' : 'flex';
             } else if (page === 'pricing') {
                 pricingPage.style.display = 'block';
             } else if (page === 'order') {
@@ -1025,37 +1284,21 @@
 
         // ==================== 事件监听器 ====================
         function setupEventListeners() {
-            // 排行榜点击事件
-            document.querySelectorAll('.chart-category').forEach(chart => {
-                chart.addEventListener('click', function() {
-                    const category = this.dataset.category;
-                    currentChartPage = 1;
-                    loadChart(category);
-                    
-                    // 更新活跃状态
-                    document.querySelectorAll('.chart-category').forEach(c => {
-                        c.classList.remove('active');
-                    });
-                    this.classList.add('active');
-                });
-            });
+            // 排行榜点击事件 - 桌面端和移动端
+            setupChartEventListeners('charts-view');
+            setupChartEventListeners('charts-view-mobile');
             
-            // 搜索功能
-            const searchBtn = document.getElementById('search-btn');
-            const searchInput = document.getElementById('search-input');
+            // 搜索功能 - 桌面端和移动端
+            setupSearchEventListeners('search-btn', 'search-input', 'clear-btn');
+            setupSearchEventListeners('search-btn-mobile', 'search-input-mobile', 'clear-btn-mobile');
             
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-            
-            // 清空歌单
+            // 清空歌单 - 桌面端和移动端
             document.getElementById('clear-btn').addEventListener('click', clearPlaylist);
+            document.getElementById('clear-btn-mobile').addEventListener('click', clearPlaylist);
             
-            // 分享歌单
+            // 分享歌单 - 桌面端和移动端
             document.getElementById('share-btn').addEventListener('click', sharePlaylist);
+            document.getElementById('share-btn-mobile').addEventListener('click', sharePlaylist);
             
             // 登录模态框
             document.getElementById('login-btn').addEventListener('click', function() {
@@ -1083,10 +1326,94 @@
                 });
             });
 
-            // 新版功能事件
-            document.getElementById('load-more-charts').addEventListener('click', loadMoreCharts);
-            document.getElementById('load-more-artist').addEventListener('click', loadMoreArtist);
-            document.getElementById('back-to-charts').addEventListener('click', showChartsView);
+            // 新版功能事件 - 桌面端和移动端
+            setupPaginationEventListeners('load-more-charts', 'load-more-artist', 'back-to-charts');
+            setupPaginationEventListeners('load-more-charts-mobile', 'load-more-artist-mobile', 'back-to-charts-mobile');
+
+            // 移动端标签页切换
+            document.querySelectorAll('.mobile-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabName = this.dataset.tab;
+                    switchMobileTab(tabName);
+                });
+            });
+        }
+
+        // 设置排行榜事件监听器
+        function setupChartEventListeners(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.querySelectorAll('.chart-category').forEach(chart => {
+                chart.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    currentChartPage = 1;
+                    loadChart(category);
+                    
+                    // 更新活跃状态
+                    container.querySelectorAll('.chart-category').forEach(c => {
+                        c.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 设置搜索事件监听器
+        function setupSearchEventListeners(searchBtnId, searchInputId, clearBtnId) {
+            const searchBtn = document.getElementById(searchBtnId);
+            const searchInput = document.getElementById(searchInputId);
+            const clearBtn = document.getElementById(clearBtnId);
+            
+            if (searchBtn && searchInput) {
+                searchBtn.addEventListener('click', function() {
+                    performSearch(searchInputId);
+                });
+                
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        performSearch(searchInputId);
+                    }
+                });
+            }
+            
+            if (clearBtn) {
+                clearBtn.addEventListener('click', clearPlaylist);
+            }
+        }
+
+        // 设置分页事件监听器
+        function setupPaginationEventListeners(loadMoreChartsId, loadMoreArtistId, backToChartsId) {
+            const loadMoreCharts = document.getElementById(loadMoreChartsId);
+            const loadMoreArtist = document.getElementById(loadMoreArtistId);
+            const backToCharts = document.getElementById(backToChartsId);
+            
+            if (loadMoreCharts) {
+                loadMoreCharts.addEventListener('click', loadMoreChartsHandler);
+            }
+            
+            if (loadMoreArtist) {
+                loadMoreArtist.addEventListener('click', loadMoreArtistHandler);
+            }
+            
+            if (backToCharts) {
+                backToCharts.addEventListener('click', showChartsView);
+            }
+        }
+
+        // 移动端标签页切换
+        function switchMobileTab(tabName) {
+            // 更新标签页头部
+            document.querySelectorAll('.mobile-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.mobile-tab[data-tab="${tabName}"]`).classList.add('active');
+            
+            // 更新内容区域
+            document.querySelectorAll('.mobile-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`mobile-${tabName}-tab`).classList.add('active');
         }
 
         function updateUserUI() {
@@ -1116,20 +1443,37 @@
 
         // ==================== 视图切换功能 ====================
         function showChartsView() {
-            document.getElementById('charts-view').style.display = 'block';
-            document.getElementById('artist-view').style.display = 'none';
+            if (isMobileView) {
+                document.getElementById('charts-view-mobile').style.display = 'block';
+                document.getElementById('artist-view-mobile').style.display = 'none';
+            } else {
+                document.getElementById('charts-view').style.display = 'block';
+                document.getElementById('artist-view').style.display = 'none';
+            }
         }
 
         function showArtistView(artistName) {
-            document.getElementById('charts-view').style.display = 'none';
-            document.getElementById('artist-view').style.display = 'block';
-            
-            currentArtist = artistName;
-            currentArtistPage = 1;
-            document.getElementById('artist-name').textContent = artistName;
-            document.getElementById('artist-song-count').textContent = '加载中...';
-            
-            loadArtistSongs(artistName, 1);
+            if (isMobileView) {
+                document.getElementById('charts-view-mobile').style.display = 'none';
+                document.getElementById('artist-view-mobile').style.display = 'block';
+                
+                currentArtist = artistName;
+                currentArtistPage = 1;
+                document.getElementById('artist-name-mobile').textContent = artistName;
+                document.getElementById('artist-song-count-mobile').textContent = '加载中...';
+                
+                loadArtistSongs(artistName, 1, true);
+            } else {
+                document.getElementById('charts-view').style.display = 'none';
+                document.getElementById('artist-view').style.display = 'block';
+                
+                currentArtist = artistName;
+                currentArtistPage = 1;
+                document.getElementById('artist-name').textContent = artistName;
+                document.getElementById('artist-song-count').textContent = '加载中...';
+                
+                loadArtistSongs(artistName, 1, false);
+            }
         }
 
         // ==================== iTunes API 搜索功能 ====================
@@ -1177,12 +1521,16 @@
         async function loadChart(category) {
             console.log(`📊 加载 ${category} 排行榜 第 ${currentChartPage} 页...`);
             
-            const songsContainer = document.getElementById('songs-container');
-            const pagination = document.getElementById('charts-pagination');
+            const songsContainer = isMobileView ? 
+                document.getElementById('songs-container-mobile') : 
+                document.getElementById('songs-container');
+            const pagination = isMobileView ? 
+                document.getElementById('charts-pagination-mobile') : 
+                document.getElementById('charts-pagination');
             
             if (currentChartPage === 1) {
                 songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
-                pagination.style.display = 'none';
+                if (pagination) pagination.style.display = 'none';
             }
             
             try {
@@ -1194,14 +1542,14 @@
                     return;
                 } else if (category === 'chinese-pop') {
                     // 华语流行 - 搜索多个热门歌手
-                    const artistsToSearch = CHINESE_ARTISTS.slice(0, 8); // 前8个歌手
+                    const artistsToSearch = CHINESE_ARTISTS.slice(0, 8);
                     for (let artist of artistsToSearch) {
                         const artistSongs = await searchMusic(artist, 10, (currentChartPage - 1) * 5);
                         songs = songs.concat(artistSongs);
                     }
                 } else if (category === 'western-pop') {
                     // 欧美流行 - 搜索多个热门歌手
-                    const artistsToSearch = WESTERN_ARTISTS.slice(0, 8); // 前8个歌手
+                    const artistsToSearch = WESTERN_ARTISTS.slice(0, 8);
                     for (let artist of artistsToSearch) {
                         const artistSongs = await searchMusic(artist, 10, (currentChartPage - 1) * 5);
                         songs = songs.concat(artistSongs);
@@ -1218,10 +1566,10 @@
                 
                 if (currentChartPage === 1) {
                     currentSongs = songs;
-                    renderSongs(currentSongs);
+                    renderSongs(currentSongs, isMobileView);
                 } else {
                     currentSongs = currentSongs.concat(songs);
-                    renderSongs(currentSongs);
+                    renderSongs(currentSongs, isMobileView);
                 }
                 
                 // 更新分页信息
@@ -1237,36 +1585,48 @@
             }
         }
 
-        function loadMoreCharts() {
+        function loadMoreChartsHandler() {
             currentChartPage++;
             const activeCategory = document.querySelector('.chart-category.active').dataset.category;
             loadChart(activeCategory);
         }
 
         function updateChartsPagination() {
-            const pagination = document.getElementById('charts-pagination');
-            const pageInfo = document.getElementById('charts-page-info');
-            const loadMoreBtn = document.getElementById('load-more-charts');
+            const pagination = isMobileView ? 
+                document.getElementById('charts-pagination-mobile') : 
+                document.getElementById('charts-pagination');
+            const pageInfo = isMobileView ? 
+                document.getElementById('charts-page-info-mobile') : 
+                document.getElementById('charts-page-info');
+            const loadMoreBtn = isMobileView ? 
+                document.getElementById('load-more-charts-mobile') : 
+                document.getElementById('load-more-charts');
             
-            pagination.style.display = 'flex';
-            pageInfo.textContent = `第 ${currentChartPage} 页 • ${currentSongs.length} 首歌曲`;
+            if (pagination) pagination.style.display = 'flex';
+            if (pageInfo) pageInfo.textContent = `第 ${currentChartPage} 页 • ${currentSongs.length} 首歌曲`;
             
-            // 简单限制：最多加载3页
-            if (currentChartPage >= 3) {
-                loadMoreBtn.disabled = true;
-                loadMoreBtn.textContent = '已加载全部';
-            } else {
-                loadMoreBtn.disabled = false;
-                loadMoreBtn.textContent = '加载更多';
+            if (loadMoreBtn) {
+                // 简单限制：最多加载3页
+                if (currentChartPage >= 3) {
+                    loadMoreBtn.disabled = true;
+                    loadMoreBtn.textContent = '已加载全部';
+                } else {
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.textContent = '加载更多';
+                }
             }
         }
 
         function renderArtistsList(category) {
-            const songsContainer = document.getElementById('songs-container');
-            const pagination = document.getElementById('charts-pagination');
+            const songsContainer = isMobileView ? 
+                document.getElementById('songs-container-mobile') : 
+                document.getElementById('songs-container');
+            const pagination = isMobileView ? 
+                document.getElementById('charts-pagination-mobile') : 
+                document.getElementById('charts-pagination');
             
             songsContainer.innerHTML = '';
-            pagination.style.display = 'none';
+            if (pagination) pagination.style.display = 'none';
             
             const artists = category === 'chinese-artists' ? CHINESE_ARTISTS : WESTERN_ARTISTS;
             
@@ -1286,7 +1646,7 @@
             });
             
             // 添加查看歌曲按钮事件
-            document.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
+            songsContainer.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const artist = this.dataset.artist;
                     showArtistView(artist);
@@ -1295,8 +1655,10 @@
         }
 
         // ==================== 歌手歌曲加载 ====================
-        async function loadArtistSongs(artistName, page) {
-            const songsContainer = document.getElementById('artist-songs-container');
+        async function loadArtistSongs(artistName, page, isMobile = false) {
+            const songsContainer = isMobile ? 
+                document.getElementById('artist-songs-container-mobile') : 
+                document.getElementById('artist-songs-container');
             const offset = (page - 1) * SONGS_PER_PAGE;
             
             if (page === 1) {
@@ -1317,45 +1679,55 @@
                     currentSongs = currentSongs.concat(songs);
                 }
                 
-                renderArtistSongs(currentSongs);
-                updateArtistPagination(songs.length);
+                renderArtistSongs(currentSongs, isMobile);
+                updateArtistPagination(songs.length, isMobile);
                 
             } catch (error) {
                 console.error('加载歌手歌曲失败:', error);
                 if (page === 1) {
-                    songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+                    songsContainer.innerHTML = '<div class="error'>加载失败，请检查网络连接</div>';
                 } else {
                     showMessage('加载更多失败，请重试');
-                currentArtistPage--; // 回退页码
+                    currentArtistPage--; // 回退页码
                 }
             }
         }
 
-        function loadMoreArtist() {
+        function loadMoreArtistHandler() {
             currentArtistPage++;
-            loadArtistSongs(currentArtist, currentArtistPage);
+            loadArtistSongs(currentArtist, currentArtistPage, isMobileView);
         }
 
-        function updateArtistPagination(newSongsCount) {
-            const pageInfo = document.getElementById('artist-page-info');
-            const loadMoreBtn = document.getElementById('load-more-artist');
-            const songCount = document.getElementById('artist-song-count');
+        function updateArtistPagination(newSongsCount, isMobile = false) {
+            const pageInfo = isMobile ? 
+                document.getElementById('artist-page-info-mobile') : 
+                document.getElementById('artist-page-info');
+            const loadMoreBtn = isMobile ? 
+                document.getElementById('load-more-artist-mobile') : 
+                document.getElementById('load-more-artist');
+            const songCount = isMobile ? 
+                document.getElementById('artist-song-count-mobile') : 
+                document.getElementById('artist-song-count');
             
-            pageInfo.textContent = `第 ${currentArtistPage} 页 • ${currentSongs.length} 首歌曲`;
-            songCount.textContent = `${currentSongs.length} 首歌曲`;
+            if (pageInfo) pageInfo.textContent = `第 ${currentArtistPage} 页 • ${currentSongs.length} 首歌曲`;
+            if (songCount) songCount.textContent = `${currentSongs.length} 首歌曲`;
             
-            // 最多加载200首或4页
-            if (currentSongs.length >= 200 || newSongsCount < SONGS_PER_PAGE) {
-                loadMoreBtn.disabled = true;
-                loadMoreBtn.textContent = '已加载全部';
-            } else {
-                loadMoreBtn.disabled = false;
-                loadMoreBtn.textContent = '加载更多';
+            if (loadMoreBtn) {
+                // 最多加载200首或4页
+                if (currentSongs.length >= 200 || newSongsCount < SONGS_PER_PAGE) {
+                    loadMoreBtn.disabled = true;
+                    loadMoreBtn.textContent = '已加载全部';
+                } else {
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.textContent = '加载更多';
+                }
             }
         }
 
-        function renderArtistSongs(songs) {
-            const songsContainer = document.getElementById('artist-songs-container');
+        function renderArtistSongs(songs, isMobile = false) {
+            const songsContainer = isMobile ? 
+                document.getElementById('artist-songs-container-mobile') : 
+                document.getElementById('artist-songs-container');
             
             if (currentArtistPage === 1) {
                 songsContainer.innerHTML = '';
@@ -1379,7 +1751,7 @@
             });
             
             // 添加歌曲点击事件
-            document.querySelectorAll('.add-btn').forEach(btn => {
+            songsContainer.querySelectorAll('.add-btn').forEach(btn => {
                 if (btn.dataset.id) {
                     btn.addEventListener('click', function() {
                         const songId = this.dataset.id;
@@ -1389,7 +1761,7 @@
             });
             
             // 添加试听按钮事件
-            document.querySelectorAll('.preview-btn').forEach(btn => {
+            songsContainer.querySelectorAll('.preview-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const previewUrl = this.dataset.url;
                     previewSong(previewUrl);
@@ -1398,8 +1770,10 @@
         }
 
         // ==================== 通用歌曲渲染 ====================
-        function renderSongs(songs) {
-            const songsContainer = document.getElementById('songs-container');
+        function renderSongs(songs, isMobile = false) {
+            const songsContainer = isMobile ? 
+                document.getElementById('songs-container-mobile') : 
+                document.getElementById('songs-container');
             
             if (currentChartPage === 1) {
                 songsContainer.innerHTML = '';
@@ -1423,7 +1797,7 @@
             });
             
             // 添加歌曲点击事件
-            document.querySelectorAll('.add-btn').forEach(btn => {
+            songsContainer.querySelectorAll('.add-btn').forEach(btn => {
                 if (btn.dataset.id) {
                     btn.addEventListener('click', function() {
                         const songId = this.dataset.id;
@@ -1433,7 +1807,7 @@
             });
             
             // 添加试听按钮事件
-            document.querySelectorAll('.preview-btn').forEach(btn => {
+            songsContainer.querySelectorAll('.preview-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const previewUrl = this.dataset.url;
                     previewSong(previewUrl);
@@ -1470,30 +1844,33 @@
         }
 
         function renderPlaylist() {
-            const playlistContainer = document.getElementById('playlist-items');
+            // 桌面端渲染
+            const desktopPlaylistContainer = document.getElementById('playlist-items');
+            // 移动端渲染
+            const mobilePlaylistContainer = document.getElementById('playlist-items-mobile');
             
-            if (playlist.length === 0) {
-                playlistContainer.innerHTML = '<div class="empty-playlist">歌单为空，请从左侧添加歌曲</div>';
-                return;
+            const playlistHTML = playlist.length === 0 ? 
+                '<div class="empty-playlist">歌单为空，请从左侧添加歌曲</div>' :
+                playlist.map((song, index) => `
+                    <div class="playlist-item">
+                        <div style="display: flex; align-items: center;">
+                            <div class="song-number">${index + 1}</div>
+                            <div class="song-info">
+                                <div class="song-title">${song.title}</div>
+                                <div class="song-artist">${song.artist}</div>
+                            </div>
+                        </div>
+                        <button class="remove-btn" data-index="${index}">×</button>
+                    </div>
+                `).join('');
+            
+            if (desktopPlaylistContainer) {
+                desktopPlaylistContainer.innerHTML = playlistHTML;
             }
             
-            playlistContainer.innerHTML = '';
-            
-            playlist.forEach((song, index) => {
-                const playlistItem = document.createElement('div');
-                playlistItem.className = 'playlist-item';
-                playlistItem.innerHTML = `
-                    <div style="display: flex; align-items: center;">
-                        <div class="song-number">${index + 1}</div>
-                        <div class="song-info">
-                            <div class="song-title">${song.title}</div>
-                            <div class="song-artist">${song.artist}</div>
-                        </div>
-                    </div>
-                    <button class="remove-btn" data-index="${index}">×</button>
-                `;
-                playlistContainer.appendChild(playlistItem);
-            });
+            if (mobilePlaylistContainer) {
+                mobilePlaylistContainer.innerHTML = playlistHTML;
+            }
             
             // 添加删除按钮事件
             document.querySelectorAll('.remove-btn').forEach(btn => {
@@ -1515,8 +1892,13 @@
         }
 
         function updatePlaylistCount() {
-            const playlistCount = document.getElementById('playlist-count');
-            playlistCount.textContent = `(${playlist.length})`;
+            const desktopCount = document.getElementById('playlist-count');
+            const mobileCount = document.getElementById('mobile-playlist-count');
+            const mobileDisplayCount = document.getElementById('mobile-playlist-count-display');
+            
+            if (desktopCount) desktopCount.textContent = `(${playlist.length})`;
+            if (mobileCount) mobileCount.textContent = `(${playlist.length})`;
+            if (mobileDisplayCount) mobileDisplayCount.textContent = `(${playlist.length})`;
         }
 
         function clearPlaylist() {
@@ -1549,8 +1931,8 @@
         }
 
         // ==================== 搜索功能 ====================
-        async function performSearch() {
-            const searchInput = document.getElementById('search-input');
+        async function performSearch(searchInputId) {
+            const searchInput = document.getElementById(searchInputId);
             const query = searchInput.value.trim();
             
             if (!query) {
@@ -1566,7 +1948,9 @@
                 return;
             }
             
-            const songsContainer = document.getElementById('songs-container');
+            const songsContainer = isMobileView ? 
+                document.getElementById('songs-container-mobile') : 
+                document.getElementById('songs-container');
             songsContainer.innerHTML = '<div class="loading">搜索中...</div>';
             
             try {
@@ -1577,7 +1961,7 @@
                     return;
                 }
                 
-                renderSongs(currentSongs);
+                renderSongs(currentSongs, isMobileView);
                 showMessage(`找到 ${currentSongs.length} 首相关歌曲`);
                 
             } catch (error) {
