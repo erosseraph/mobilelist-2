@@ -1,7 +1,10 @@
 // api/itunes-proxy.js
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   // 处理预检请求
   if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(200).end();
   }
 
@@ -34,4 +37,4 @@ export default async function handler(req, res) {
     console.error('代理错误:', error);
     res.status(500).json({ error: error.message });
   }
-}
+};
