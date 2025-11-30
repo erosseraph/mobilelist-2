@@ -1258,44 +1258,50 @@
             }
         }
 
-        // iTunes API搜索
-        async function searchMusic(term, limit = 50, offset = 0) {
-            try {
-                const encodedTerm = encodeURIComponent(term);
-                const url = 'https://itunes.apple.com/search?term=' + encodedTerm + '&entity=musicTrack&limit=' + limit + '&offset=' + offset + '&country=CN&lang=zh_cn';
-                
-                const response = await fetch(url);
-                if (!response.ok) {
-                    throw new Error('HTTP error! status: ' + response.status);
-                }
-                
-                const data = await response.json();
-                console.log('搜索结果:', data.resultCount, '条');
-                
-                if (data.resultCount === 0) {
-                    return [];
-                }
-                
-                return data.results.map(track => ({
-                    id: track.trackId,
-                    title: track.trackName,
-                    artist: track.artistName,
-                    album: track.collectionName,
-                    duration: track.trackTimeMillis,
-                    previewUrl: track.previewUrl,
-                    artwork: track.artworkUrl100,
-                    popularity: track.trackNumber || 0
-                })).filter(track => 
-                    track.previewUrl && 
-                    track.title && 
-                    track.artist
-                );
-                
-            } catch (error) {
-                console.error('搜索失败:', error);
-                throw error;
-            }
+       // 使用自己的API代理
+async function searchMusic(term, limit = 50, offset = 0) {
+    try {
+        const encodedTerm = encodeURIComponent(term);
+        
+        // 使用自己的代理API
+        const url = `/api/itunes-proxy?term=${encodedTerm}&limit=${limit}&offset=${offset}`;
+        
+        console.log('请求自己的API代理:', url);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
         }
+        
+        const data = await response.json();
+        console.log('搜索结果:', data.resultCount, '条');
+        
+        if (data.resultCount === 0) {
+            return [];
+        }
+        
+        return data.results.map(track => ({
+            id: track.trackId,
+            title: track.trackName,
+            artist: track.artistName,
+            album: track.collectionName,
+            duration: track.trackTimeMillis,
+            previewUrl: track.previewUrl,
+            artwork: track.artworkUrl100,
+            popularity: track.trackNumber || 0
+        })).filter(track => 
+            track.previewUrl && 
+            track.title && 
+            track.artist
+        );
+        
+    } catch (error) {
+        console.error('搜索失败:', error);
+        throw error;
+    }
+}
 
         // 排行榜功能 - 修复：增强移动端支持
         async function loadChart(category) {
