@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>定制你的专属歌厅 v2.1.0</title>
+    <title>定制你的专属歌厅 v2.1.1</title>
     
     <meta name="theme-color" content="#1a2a6c">
     <meta name="description" content="专业歌厅定制服务，打造您的专属音乐空间">
@@ -580,9 +580,16 @@
                 flex-direction: column;
             }
             
-            /* 修复：桌面布局在移动端隐藏 */
-            .songs-section, .playlist-section {
+            /* 修复：只隐藏桌面端直接子元素的布局，不隐藏移动端标签页内的内容 */
+            #karaoke-page > .songs-section,
+            #karaoke-page > .playlist-section {
                 display: none;
+            }
+            
+            /* 修复：确保移动端标签页内的内容显示 */
+            .mobile-tabs .songs-section,
+            .mobile-tabs .playlist-section {
+                display: block !important;
             }
             
             .mobile-tab-content.active {
@@ -1053,9 +1060,9 @@
             activeButton.classList.add('active');
         }
 
-        // 事件监听器
+        // 事件监听器 - 修复版
         function setupEventListeners() {
-            // 排行榜事件 - 修复：为移动端和桌面端都设置事件
+            // 排行榜事件
             setupChartEvents('charts-view');
             setupChartEvents('charts-view-mobile');
             
@@ -1071,17 +1078,9 @@
             document.getElementById('share-btn').addEventListener('click', sharePlaylist);
             document.getElementById('share-btn-mobile').addEventListener('click', sharePlaylist);
             
-            // 登录相关
-            document.getElementById('login-btn').addEventListener('click', function() {
-                document.getElementById('login-modal').style.display = 'flex';
-            });
-            document.getElementById('close-login').addEventListener('click', function() {
-                document.getElementById('login-modal').style.display = 'none';
-            });
-            document.getElementById('logout-btn').addEventListener('click', function() {
-                if (auth) auth.signOut();
-            });
-
+            // 修复：增强登录相关事件绑定
+            initLoginEvents();
+            
             // 分页事件
             document.getElementById('load-more-charts').addEventListener('click', loadMoreCharts);
             document.getElementById('load-more-charts-mobile').addEventListener('click', loadMoreCharts);
@@ -1090,7 +1089,7 @@
             document.getElementById('back-to-charts').addEventListener('click', showChartsView);
             document.getElementById('back-to-charts-mobile').addEventListener('click', showChartsView);
 
-            // 移动端标签页 - 修复：增强事件绑定
+            // 移动端标签页
             document.querySelectorAll('.mobile-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabName = this.dataset.tab;
@@ -1106,6 +1105,46 @@
                     const price = card.querySelector('.price').textContent;
                     alert('您选择了 ' + planName + '\n价格: ' + price + '\n请先创建歌单然后提交订单。');
                 });
+            });
+        }
+
+        // 修复：独立的登录事件初始化函数
+        function initLoginEvents() {
+            const loginBtn = document.getElementById('login-btn');
+            const closeLoginBtn = document.getElementById('close-login');
+            const emailLoginBtn = document.getElementById('email-login-btn');
+            const googleLoginBtn = document.getElementById('google-login-btn');
+            const loginModal = document.getElementById('login-modal');
+            
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function() {
+                    loginModal.style.display = 'flex';
+                });
+            }
+            
+            if (closeLoginBtn) {
+                closeLoginBtn.addEventListener('click', function() {
+                    loginModal.style.display = 'none';
+                });
+            }
+            
+            if (emailLoginBtn) {
+                emailLoginBtn.addEventListener('click', function() {
+                    alert('邮箱登录功能开发中...');
+                });
+            }
+            
+            if (googleLoginBtn) {
+                googleLoginBtn.addEventListener('click', function() {
+                    alert('Google登录功能开发中...');
+                });
+            }
+            
+            // 点击模态框背景关闭
+            loginModal.addEventListener('click', function(e) {
+                if (e.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
             });
         }
 
@@ -1575,11 +1614,6 @@
                     previewSong(previewUrl);
                 });
             });
-        }
-
-        // 通用歌曲渲染（保留兼容性）
-        function renderSongs(songs, isMobile = false) {
-            renderSongsToCurrentContainer(songs);
         }
 
         // 工具函数
