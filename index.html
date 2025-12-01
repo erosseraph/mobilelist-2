@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>定制你的专属歌厅 v2.1.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>定制你的专属歌厅 v2.2.0</title>
     
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico">
@@ -543,6 +543,46 @@
             opacity: 0.8;
             color: #ff6b6b;
         }
+        
+        /* 重定向检查状态指示器 */
+        .redirect-status {
+            display: none;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            z-index: 3000;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .redirect-status.show {
+            display: block;
+        }
+        
+        .redirect-success {
+            border-left: 4px solid #34A853;
+        }
+        
+        .redirect-error {
+            border-left: 4px solid #EA4335;
+        }
+        
+        .redirect-warning {
+            border-left: 4px solid #FBBC05;
+        }
+        
+        .redirect-info {
+            border-left: 4px solid #4285F4;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* 移动端响应式设计 - 修复版 */
         @media (max-width: 768px) {
@@ -553,15 +593,18 @@
             .navbar {
                 flex-direction: column;
                 gap: 15px;
+                padding: 10px 0;
             }
             
             .logo {
                 font-size: 1.4rem;
+                text-align: center;
             }
             
             .nav-buttons {
                 width: 100%;
                 justify-content: center;
+                flex-wrap: wrap;
             }
             
             .nav-btn {
@@ -655,6 +698,7 @@
             .chart-category {
                 padding: 8px 12px;
                 font-size: 0.8rem;
+                flex: 1 0 calc(50% - 10px);
             }
             
             .mobile-tab {
@@ -672,9 +716,30 @@
                 font-size: 1rem;
             }
         }
+        
+        /* 触摸优化 */
+        button, .song, .chart-category, .mobile-tab {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        /* 防止文本选择 */
+        .song, .playlist-item, .chart-category {
+            user-select: none;
+        }
+        
+        /* 平滑滚动 */
+        .songs-container, .playlist-items {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 <body>
+    <!-- 重定向状态指示器 -->
+    <div id="redirect-status" class="redirect-status"></div>
+
+    <!-- 登录模态框 -->
     <div class="modal" id="login-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -683,10 +748,10 @@
             </div>
             <div class="login-methods">
                 <button class="login-method-btn" id="email-login-btn">📧 邮箱登录/注册</button>
-                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（页面跳转）</button>
+                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录</button>
             </div>
             <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">
-                <p>Google登录将跳转到Google授权页面</p>
+                <p>Google登录使用安全的重定向流程</p>
                 <p>授权完成后会自动返回本网站</p>
             </div>
         </div>
@@ -694,18 +759,18 @@
 
     <div class="container">
         <nav class="navbar">
-            <div class="logo">🎤 定制你的专属歌厅 v2.1.1</div>
+            <div class="logo">🎤 定制你的专属歌厅 v2.2.0</div>
             <div class="nav-buttons">
                 <button class="nav-btn active" id="karaoke-nav">🎵 点歌系统</button>
                 <button class="nav-btn" id="pricing-nav">💰 价格配套</button>
-                <div class="admin-section" id="admin-section">
-                    <a href="admin.html" class="admin-link">👑 管理面板</a>
+                <div class="admin-section" id="admin-section" style="display: none;">
+                    <a href="admin.html" class="nav-btn">👑 管理面板</a>
                 </div>
             </div>
             <div class="user-section">
                 <div class="user-info" id="user-info">
                     <div class="user-avatar" id="user-avatar">E</div>
-                    <span class="user-email" id="user-email">Eros Seraph</span>
+                    <span class="user-email" id="user-email">用户</span>
                     <button class="logout-btn" id="logout-btn">退出</button>
                 </div>
                 <button class="login-btn" id="login-btn">登录/注册</button>
@@ -901,7 +966,7 @@
     </div>
 
     <script>
-        // Firebase配置 - 使用固定配置
+        // Firebase配置
         const firebaseConfig = {
             apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
             authDomain: "karaoke-customizer.firebaseapp.com",
@@ -917,6 +982,11 @@
         let currentSongs = [];
         let playlist = [];
         let firebaseApp, auth, firestore, analytics;
+        
+        // 重定向状态
+        let redirectCheckTimer = null;
+        let redirectCheckCount = 0;
+        const MAX_REDIRECT_CHECKS = 5;
 
         // 歌手列表
         const CHINESE_ARTISTS = [
@@ -944,15 +1014,15 @@
 
         // 页面初始化
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('初始化应用...');
+            console.log('初始化应用 v2.2.0...');
             initializeViewport();
             initializeFirebase();
             initPageNavigation();
             setupEventListeners();
             loadChart('chinese-pop');
             
-            // 检查是否从重定向返回
-            setTimeout(checkRedirectResult, 1000);
+            // 检查重定向结果 - 增强检查
+            checkRedirectResultEnhanced();
         });
 
         // 修复：增强视口初始化
@@ -962,25 +1032,20 @@
             
             // 确保页面正确显示
             if (isMobileView) {
-                // 移动端：显示点歌系统页面和移动标签页
                 document.getElementById('karaoke-page').style.display = 'block';
                 document.getElementById('pricing-page').style.display = 'none';
                 document.getElementById('order-page').style.display = 'none';
                 
-                // 确保移动端标签页正确初始化
                 switchMobileTab('songs');
                 
-                // 隐藏桌面布局，显示移动端布局
                 document.querySelector('.mobile-tabs').style.display = 'block';
                 document.querySelector('.songs-section').style.display = 'none';
                 document.querySelector('.playlist-section').style.display = 'none';
             } else {
-                // 桌面端：显示点歌系统页面和桌面布局
                 document.getElementById('karaoke-page').style.display = 'flex';
                 document.getElementById('pricing-page').style.display = 'none';
                 document.getElementById('order-page').style.display = 'none';
                 
-                // 显示桌面布局，隐藏移动端布局
                 document.querySelector('.mobile-tabs').style.display = 'none';
                 document.querySelector('.songs-section').style.display = 'block';
                 document.querySelector('.playlist-section').style.display = 'block';
@@ -992,7 +1057,6 @@
                 if (newIsMobile !== isMobileView) {
                     isMobileView = newIsMobile;
                     console.log('视图切换:', isMobileView ? '移动端' : '桌面端');
-                    // 重新初始化页面显示
                     showPage('karaoke');
                     initializeViewport();
                 }
@@ -1019,6 +1083,15 @@
                 currentUser = user;
                 console.log('用户已登录:', user.email);
                 updateUserUI();
+                
+                // 用户登录后显示重定向成功消息
+                showRedirectStatus('Google登录成功！', 'success');
+                
+                // 清除重定向检查计时器
+                if (redirectCheckTimer) {
+                    clearTimeout(redirectCheckTimer);
+                    redirectCheckTimer = null;
+                }
             } else {
                 currentUser = null;
                 console.log('用户已登出');
@@ -1026,49 +1099,124 @@
             }
         }
 
-        // 检查重定向登录结果
-        function checkRedirectResult() {
-            if (!auth) return;
+        // 增强的重定向结果检查
+        function checkRedirectResultEnhanced() {
+            console.log('开始增强重定向检查...');
             
-            console.log('检查重定向登录结果...');
+            // 检查URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorCode = urlParams.get('error');
+            const authStatus = urlParams.get('auth_status');
+            
+            if (errorCode) {
+                console.error('URL中检测到错误:', errorCode);
+                showRedirectStatus('登录过程中发生错误: ' + errorCode, 'error');
+                
+                // 清除URL中的错误参数
+                if (window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+                return;
+            }
+            
+            if (authStatus === 'success') {
+                console.log('URL参数显示登录成功');
+                showRedirectStatus('登录成功！正在获取用户信息...', 'info');
+                
+                // 清除URL中的成功参数
+                if (window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+            
+            if (!auth) {
+                console.log('Auth未初始化，延迟检查...');
+                setTimeout(checkRedirectResultEnhanced, 1000);
+                return;
+            }
+            
+            console.log('检查Firebase重定向结果...');
             
             auth.getRedirectResult()
                 .then((result) => {
-                    console.log('getRedirectResult 返回:', result);
+                    console.log('getRedirectResult返回结果:', result);
                     
                     if (result.user) {
                         // 用户通过重定向登录成功
                         console.log('重定向登录成功:', result.user.email);
-                        showMessage('✅ Google 登录成功！');
-                        updateUserUI();
+                        showMessage('✅ Google登录成功！');
+                        showRedirectStatus('Google登录成功！', 'success');
                         
-                        // 清除URL中的认证参数（避免刷新问题）
+                        // 清除URL参数
                         if (window.history.replaceState) {
                             window.history.replaceState({}, document.title, window.location.pathname);
                         }
+                        
+                        // 停止重定向检查
+                        if (redirectCheckTimer) {
+                            clearTimeout(redirectCheckTimer);
+                            redirectCheckTimer = null;
+                        }
+                    } else if (result.credential) {
+                        console.log('获取到凭证但没有用户');
+                        showRedirectStatus('获取到凭证，正在处理...', 'warning');
                     } else {
-                        console.log('没有用户从重定向返回');
-                    }
-                    
-                    if (result.credential) {
-                        console.log('获取到凭证');
+                        console.log('没有从重定向返回的用户或凭证');
                     }
                 })
                 .catch((error) => {
-                    console.log('重定向结果处理:', error.code, error.message);
+                    console.log('重定向结果处理错误:', error.code, error.message);
                     
-                    // 忽略常见的非错误情况
-                    const ignorableErrors = [
-                        'auth/redirect-cancelled-by-user',
-                        'auth/redirect-operation-pending',
-                        'auth/no-auth-event'
-                    ];
+                    // 处理常见错误
+                    const errorHandlers = {
+                        'auth/redirect-cancelled-by-user': () => {
+                            console.log('用户取消了重定向登录');
+                            showRedirectStatus('登录已取消', 'warning');
+                        },
+                        'auth/redirect-operation-pending': () => {
+                            console.log('重定向操作正在进行中');
+                            showRedirectStatus('正在处理登录...', 'info');
+                            // 继续检查
+                            if (redirectCheckCount < MAX_REDIRECT_CHECKS) {
+                                redirectCheckCount++;
+                                redirectCheckTimer = setTimeout(checkRedirectResultEnhanced, 2000);
+                            }
+                        },
+                        'auth/no-auth-event': () => {
+                            console.log('没有认证事件');
+                            // 正常情况，不需要特殊处理
+                        },
+                        'auth/popup-blocked': () => {
+                            console.log('弹窗被阻止，尝试使用重定向');
+                            showRedirectStatus('弹窗被阻止，请使用重定向登录', 'warning');
+                        },
+                        'auth/popup-closed-by-user': () => {
+                            console.log('用户关闭了弹窗');
+                            showRedirectStatus('登录窗口已关闭', 'warning');
+                        }
+                    };
                     
-                    if (!ignorableErrors.includes(error.code)) {
+                    if (errorHandlers[error.code]) {
+                        errorHandlers[error.code]();
+                    } else if (!error.code.includes('no-auth-event')) {
                         console.error('重定向登录错误:', error);
-                        showMessage('登录处理错误: ' + error.message);
+                        showRedirectStatus('登录错误: ' + error.message, 'error');
                     }
                 });
+        }
+
+        // 显示重定向状态
+        function showRedirectStatus(message, type = 'info') {
+            const statusEl = document.getElementById('redirect-status');
+            if (!statusEl) return;
+            
+            statusEl.textContent = message;
+            statusEl.className = `redirect-status show redirect-${type}`;
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                statusEl.classList.remove('show');
+            }, 5000);
         }
 
         // 页面导航
@@ -1084,22 +1232,18 @@
         }
         
         function showPage(page) {
-            // 隐藏所有页面
             document.getElementById('karaoke-page').style.display = 'none';
             document.getElementById('pricing-page').style.display = 'none';
             document.getElementById('order-page').style.display = 'none';
             
-            // 显示目标页面
             if (page === 'karaoke') {
                 if (isMobileView) {
                     document.getElementById('karaoke-page').style.display = 'block';
-                    // 确保移动端正确显示
                     document.querySelector('.mobile-tabs').style.display = 'block';
                     document.querySelector('.songs-section').style.display = 'none';
                     document.querySelector('.playlist-section').style.display = 'none';
                 } else {
                     document.getElementById('karaoke-page').style.display = 'flex';
-                    // 确保桌面端正确显示
                     document.querySelector('.mobile-tabs').style.display = 'none';
                     document.querySelector('.songs-section').style.display = 'block';
                     document.querySelector('.playlist-section').style.display = 'block';
@@ -1136,7 +1280,7 @@
             document.getElementById('share-btn').addEventListener('click', sharePlaylist);
             document.getElementById('share-btn-mobile').addEventListener('click', sharePlaylist);
             
-            // 修复：增强登录相关事件绑定
+            // 登录相关事件
             initLoginEvents();
             
             // 分页事件
@@ -1164,6 +1308,21 @@
                     alert('您选择了 ' + planName + '\n价格: ' + price + '\n请先创建歌单然后提交订单。');
                 });
             });
+            
+            // 移动端触摸优化
+            if (isMobileView) {
+                document.querySelectorAll('button').forEach(btn => {
+                    btn.addEventListener('touchstart', function() {
+                        this.style.transform = 'scale(0.98)';
+                    });
+                    btn.addEventListener('touchend', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                    btn.addEventListener('touchcancel', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+            }
         }
 
         // 检查是否是移动设备
@@ -1171,7 +1330,7 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
-        // 修复：完整的登录事件初始化函数 - 已修复Google登录问题
+        // 修复：增强登录事件处理
         function initLoginEvents() {
             const loginBtn = document.getElementById('login-btn');
             const closeLoginBtn = document.getElementById('close-login');
@@ -1194,80 +1353,108 @@
             
             if (emailLoginBtn) {
                 emailLoginBtn.addEventListener('click', function() {
-                    // 创建邮箱登录界面
                     const email = prompt('请输入邮箱地址:');
                     if (!email) return;
                     
                     const password = prompt('请输入密码:');
                     if (!password) return;
                     
-                    // 先尝试创建用户，如果失败则尝试登录
                     auth.createUserWithEmailAndPassword(email, password)
                         .then((userCredential) => {
                             showMessage('🎉 注册成功！');
                             loginModal.style.display = 'none';
+                            showRedirectStatus('邮箱注册成功！', 'success');
                         })
                         .catch((error) => {
                             if (error.code === 'auth/email-already-in-use') {
-                                // 如果邮箱已存在，尝试登录
                                 auth.signInWithEmailAndPassword(email, password)
                                     .then(() => {
                                         showMessage('✅ 登录成功！');
                                         loginModal.style.display = 'none';
+                                        showRedirectStatus('邮箱登录成功！', 'success');
                                     })
                                     .catch(loginError => {
                                         showMessage('❌ 登录失败: ' + loginError.message);
+                                        showRedirectStatus('登录失败: ' + loginError.message, 'error');
                                     });
                             } else if (error.code === 'auth/invalid-email') {
                                 showMessage('❌ 邮箱格式不正确');
+                                showRedirectStatus('邮箱格式不正确', 'error');
                             } else if (error.code === 'auth/weak-password') {
                                 showMessage('❌ 密码太弱，请使用至少6位字符');
+                                showRedirectStatus('密码太弱', 'error');
                             } else {
                                 showMessage('❌ 错误: ' + error.message);
+                                showRedirectStatus('错误: ' + error.message, 'error');
                             }
                         });
                 });
             }
             
+            // 🔥 关键修复：Google登录处理
             if (googleLoginBtn) {
                 googleLoginBtn.addEventListener('click', function() {
+                    if (!auth) {
+                        showMessage('认证系统未初始化，请刷新页面');
+                        return;
+                    }
+                    
                     const provider = new firebase.auth.GoogleAuthProvider();
                     
-                    // 🔥 关键修复：添加email范围和prompt参数
+                    // 🔥 关键修复：添加所有必要的作用域和参数
                     provider.addScope('email');
                     provider.addScope('profile');
+                    provider.addScope('openid');
+                    
+                    // 设置额外的参数
                     provider.setCustomParameters({
-                        prompt: 'select_account'
+                        prompt: 'select_account consent',
+                        include_granted_scopes: 'true',
+                        response_type: 'code',
+                        access_type: 'offline'
                     });
                     
                     console.log('Google登录配置:', {
                         scopes: provider.scopes,
-                        customParameters: provider.customParameters
+                        customParameters: provider.customParameters,
+                        providerId: provider.providerId
                     });
                     
-                    // 为移动端和桌面端提供更好的用户体验
-                    if (isMobileDevice() || isMobileView) {
-                        // 移动端：直接使用重定向
-                        showMessage('正在跳转到Google登录页面...');
+                    // 显示重定向状态
+                    showRedirectStatus('正在跳转到Google登录页面...', 'info');
+                    
+                    // 对于所有设备都使用重定向，这是最可靠的方式
+                    try {
+                        // 开始重定向检查
+                        redirectCheckCount = 0;
+                        if (redirectCheckTimer) {
+                            clearTimeout(redirectCheckTimer);
+                        }
+                        redirectCheckTimer = setTimeout(checkRedirectResultEnhanced, 1000);
+                        
+                        // 执行重定向登录
                         auth.signInWithRedirect(provider);
-                    } else {
-                        // 桌面端：先尝试弹窗，失败时使用重定向
+                        
+                        // 显示等待消息
+                        setTimeout(() => {
+                            showRedirectStatus('如果页面没有自动跳转，请等待几秒...', 'warning');
+                        }, 2000);
+                        
+                    } catch (redirectError) {
+                        console.error('重定向失败:', redirectError);
+                        showRedirectStatus('重定向失败: ' + redirectError.message, 'error');
+                        
+                        // 尝试使用弹窗作为备选方案
                         auth.signInWithPopup(provider)
                             .then((result) => {
-                                showMessage('✅ Google 登录成功！');
+                                showMessage('✅ Google登录成功！');
                                 loginModal.style.display = 'none';
+                                showRedirectStatus('Google登录成功！', 'success');
                             })
-                            .catch((error) => {
-                                if (error.code === 'auth/popup-blocked' || 
-                                    error.code === 'auth/popup-closed-by-user') {
-                                    // 弹窗被阻止或关闭，使用重定向
-                                    if (confirm('弹窗被阻止，是否使用页面跳转登录？')) {
-                                        showMessage('正在跳转到Google登录页面...');
-                                        auth.signInWithRedirect(provider);
-                                    }
-                                } else {
-                                    showMessage('❌ 登录失败: ' + error.message);
-                                }
+                            .catch((popupError) => {
+                                console.error('弹窗登录失败:', popupError);
+                                showRedirectStatus('登录失败: ' + popupError.message, 'error');
+                                showMessage('❌ 登录失败: ' + popupError.message);
                             });
                     }
                 });
@@ -1278,8 +1465,10 @@
                     if (confirm('确定要退出登录吗？')) {
                         auth.signOut().then(() => {
                             showMessage('已退出登录');
+                            showRedirectStatus('已退出登录', 'info');
                         }).catch((error) => {
                             showMessage('退出失败: ' + error.message);
+                            showRedirectStatus('退出失败', 'error');
                         });
                     }
                 });
@@ -1288,6 +1477,13 @@
             // 点击模态框背景关闭
             loginModal.addEventListener('click', function(e) {
                 if (e.target === loginModal) {
+                    loginModal.style.display = 'none';
+                }
+            });
+            
+            // ESC键关闭模态框
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && loginModal.style.display === 'flex') {
                     loginModal.style.display = 'none';
                 }
             });
@@ -1324,31 +1520,28 @@
             }
         }
 
-        // 修复：增强移动端标签页切换
         function switchMobileTab(tabName) {
-            // 更新标签页状态
             document.querySelectorAll('.mobile-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             document.querySelector('.mobile-tab[data-tab="' + tabName + '"]').classList.add('active');
             
-            // 更新内容显示
             document.querySelectorAll('.mobile-tab-content').forEach(content => {
                 content.classList.remove('active');
             });
             document.getElementById('mobile-' + tabName + '-tab').classList.add('active');
             
-            // 根据标签页加载对应内容
             if (tabName === 'songs') {
-                // 确保歌曲浏览视图正确显示
                 const activeCategory = document.querySelector('.chart-category.active');
                 if (activeCategory && currentSongs.length === 0) {
                     loadChart(activeCategory.dataset.category);
                 }
             } else if (tabName === 'playlist') {
-                // 确保歌单正确渲染
                 renderPlaylist();
             }
+            
+            // 滚动到顶部
+            window.scrollTo(0, 0);
         }
 
         function updateUserUI() {
@@ -1356,6 +1549,7 @@
             const loginBtn = document.getElementById('login-btn');
             const userAvatar = document.getElementById('user-avatar');
             const userEmail = document.getElementById('user-email');
+            const adminSection = document.getElementById('admin-section');
             
             if (currentUser) {
                 userInfo.style.display = 'flex';
@@ -1364,19 +1558,24 @@
                 const initial = displayName.charAt(0).toUpperCase();
                 userAvatar.textContent = initial;
                 userEmail.textContent = displayName;
-                document.getElementById('admin-section').style.display = 'block';
                 
-                // 加载用户的歌单
+                // 显示管理面板（仅对管理员显示）
+                if (adminSection) {
+                    adminSection.style.display = 'block';
+                }
+                
                 loadUserPlaylist();
             } else {
                 userInfo.style.display = 'none';
                 loginBtn.style.display = 'block';
-                document.getElementById('admin-section').style.display = 'none';
+                if (adminSection) {
+                    adminSection.style.display = 'none';
+                }
             }
         }
         
         async function loadUserPlaylist() {
-            if (!currentUser) return;
+            if (!currentUser || !firestore) return;
             
             try {
                 const playlistRef = firestore.collection('playlists').doc(currentUser.uid);
@@ -1394,14 +1593,16 @@
         }
         
         async function saveUserPlaylist() {
-            if (!currentUser) return;
+            if (!currentUser || !firestore) return;
             
             try {
                 const playlistRef = firestore.collection('playlists').doc(currentUser.uid);
                 await playlistRef.set({
                     songs: playlist,
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    songCount: playlist.length
+                    songCount: playlist.length,
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email
                 });
             } catch (error) {
                 console.error('保存歌单失败:', error);
@@ -1453,7 +1654,7 @@
                 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+                    throw new Error(`HTTP错误! 状态: ${response.status}, 详情: ${errorText}`);
                 }
                 
                 const data = await response.json();
@@ -1484,11 +1685,10 @@
             }
         }
 
-        // 排行榜功能 - 修复：增强移动端支持
+        // 排行榜功能
         async function loadChart(category) {
             console.log('加载 ' + category + ' 排行榜 第 ' + currentChartPage + ' 页...');
             
-            // 修复：根据当前视图获取正确的容器
             const songsContainer = getCurrentSongsContainer();
             const pagination = getCurrentPaginationContainer();
             
@@ -1534,7 +1734,6 @@
                     currentSongs = currentSongs.concat(songs);
                 }
                 
-                // 修复：渲染到当前视图的容器
                 renderSongsToCurrentContainer(currentSongs);
                 updateChartsPagination();
                 
@@ -1556,8 +1755,6 @@
                 const activeTab = document.querySelector('.mobile-tab.active');
                 if (activeTab && activeTab.dataset.tab === 'songs') {
                     const artistView = document.getElementById('artist-view-mobile');
-                    
-                    // 修复：使用计算样式准确检查显示状态
                     const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
                     
                     if (artistView && artistViewComputed !== 'none') {
@@ -1567,11 +1764,9 @@
                     }
                 }
             } else {
-                // 修复桌面端逻辑
                 const artistView = document.getElementById('artist-view');
                 const chartsView = document.getElementById('charts-view');
                 
-                // 使用计算样式，不要依赖内联样式
                 const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
                 const chartsViewComputed = chartsView ? window.getComputedStyle(chartsView).display : 'none';
                 
@@ -1584,7 +1779,6 @@
             return null;
         }
 
-        // 修复：获取当前视图的分页容器
         function getCurrentPaginationContainer() {
             if (isMobileView) {
                 const artistView = document.getElementById('artist-view-mobile');
@@ -1776,7 +1970,6 @@
             });
         }
 
-        // 修复：增强歌曲渲染到当前容器
         function renderSongsToCurrentContainer(songs) {
             const songsContainer = getCurrentSongsContainer();
             if (!songsContainer) return;
@@ -1833,7 +2026,6 @@
                 updatePlaylistCount();
                 showMessage('已添加 "' + song.title + '" 到歌单');
                 
-                // 如果用户已登录，保存到云端
                 if (currentUser) {
                     saveUserPlaylist();
                 }
@@ -1877,7 +2069,6 @@
                 updatePlaylistCount();
                 showMessage('已从歌单移除 "' + songTitle + '"');
                 
-                // 如果用户已登录，保存到云端
                 if (currentUser) {
                     saveUserPlaylist();
                 }
@@ -1906,7 +2097,6 @@
                 updatePlaylistCount();
                 showMessage('歌单已清空');
                 
-                // 如果用户已登录，保存到云端
                 if (currentUser) {
                     saveUserPlaylist();
                 }
@@ -1924,15 +2114,6 @@
                 return;
             }
             
-            // 创建分享链接
-            const playlistData = {
-                songs: playlist,
-                count: playlist.length,
-                sharedBy: currentUser.email || currentUser.displayName,
-                timestamp: new Date().toISOString()
-            };
-            
-            // 这里可以保存到数据库并生成分享链接
             showMessage('分享功能开发中...后续会添加保存和分享链接功能');
         }
 
@@ -1985,7 +2166,6 @@
             });
             showMessage('开始试听... (30秒预览)');
             
-            // 30秒后自动停止
             setTimeout(() => {
                 if (currentAudio) {
                     currentAudio.pause();
@@ -1998,7 +2178,7 @@
         function showMessage(message) {
             const messageEl = document.createElement('div');
             messageEl.textContent = message;
-            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000; font-size: 14px;';
+            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000; font-size: 14px; max-width: 300px; word-wrap: break-word;';
             document.body.appendChild(messageEl);
             setTimeout(() => {
                 messageEl.style.opacity = '0';
