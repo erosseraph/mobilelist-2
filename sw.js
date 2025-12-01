@@ -1,4 +1,4 @@
-// Service Worker for 歌厅定制应用
+// Service Worker for 歌厅定制应用 - 修复版
 const CACHE_NAME = 'karaoke-customizer-v2.0.0';
 const STATIC_CACHE = 'static-v2';
 const DYNAMIC_CACHE = 'dynamic-v2';
@@ -18,10 +18,8 @@ const STATIC_ASSETS = [
   '/icons/icon-152.png',
   '/icons/icon-192.png',
   '/icons/icon-384.png',
-  '/icons/icon-512.png',
-  'https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js',
-  'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js'
+  '/icons/icon-512.png'
+  // 🔥 注意：已移除 Firebase JS 库的缓存
 ];
 
 // 需要缓存的动态资源（API端点）
@@ -37,6 +35,7 @@ self.addEventListener('install', event => {
     caches.open(STATIC_CACHE)
       .then(cache => {
         console.log('📦 缓存静态资源');
+        // 只缓存自己的资源，不缓存第三方库
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
@@ -72,28 +71,63 @@ self.addEventListener('activate', event => {
   );
 });
 
-// 获取事件 - 网络优先，失败时使用缓存
+// 获取事件 - 关键修复：排除所有 Firebase/Google 和认证相关请求
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // ============ 新增：排除 Firebase 相关请求 ============
-  // 不要让 Service Worker 缓存或处理任何 Firebase 相关资源
-  if (url.href.includes('gstatic.com/firebase') || 
-      url.href.includes('firebase.googleapis.com') ||
-      url.href.includes('__/firebase') ||
-      url.href.includes('firebase')) {
-    // 直接通过网络请求，不经过缓存
+  // ============ 关键修复：主页和认证页面完全不走缓存 ============
+  // 1. 主页和认证相关页面直接网络请求
+  if (url.pathname === '/' || 
+      url.pathname === '/index.html' ||
+      url.search.includes('auth') ||
+      url.search.includes('firebase') ||
+      url.search.includes('apiKey') ||
+      url.search.includes('__firebase') ||
+      url.hash.includes('access_token') ||
+      url.hash.includes('id_token')) {
+    console.log('SW: 主页/认证页面，直接网络请求:', url.pathname + url.search);
     event.respondWith(fetch(request));
     return;
   }
-  // ============ 新增结束 ============
+  
+  // 2. 排除所有 Firebase/Google 域名 - 直接网络请求
+  const excludedDomains = [
+    'gstatic.com',
+    'googleapis.com',
+    'google.com',
+    'firebaseapp.com',
+    'firebasestorage.app',
+    'firebaseio.com',
+    'accounts.google.com',
+    'www.googleapis.com',
+    'securetoken.googleapis.com',
+    'identitytoolkit.googleapis.com'
+  ];
+  
+  const isExcludedDomain = excludedDomains.some(domain => 
+    url.hostname.includes(domain)
+  );
+  
+  if (isExcludedDomain) {
+    console.log('SW: Firebase/Google 资源，直接网络请求:', url.hostname);
+    event.respondWith(fetch(request));
+    return;
+  }
+  
+  // 3. 排除所有包含 __/auth 或 __/firebase 的路径
+  if (url.pathname.includes('__/auth') || url.pathname.includes('__/firebase')) {
+    console.log('SW: Firebase 内部路径，直接网络请求:', url.pathname);
+    event.respondWith(fetch(request));
+    return;
+  }
   
   // 跳过非GET请求
   if (request.method !== 'GET') {
     return;
   }
 
+  // ============ iTunes API 请求处理 ============
   // 处理 iTunes API 请求 - 网络优先
   if (url.href.includes('itunes.apple.com/search')) {
     event.respondWith(
@@ -113,7 +147,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 处理静态资源 - 缓存优先
+  // ============ 静态资源处理 ============
+  // 处理自己的静态资源 - 缓存优先
   if (STATIC_ASSETS.some(asset => url.href.includes(asset)) || 
       url.origin === self.location.origin) {
     event.respondWith(
@@ -135,6 +170,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // ============ 其他请求处理 ============
   // 其他请求 - 网络优先
   event.respondWith(
     fetch(request)
@@ -250,11 +286,27 @@ async function syncOrdersToServer(orders) {
   return Promise.resolve();
 }
 
-// 处理消息
+// 处理消息 - 忽略 Firebase 内部消息
 self.addEventListener('message', event => {
   console.log('📨 Service Worker 收到消息:', event.data);
   
+  // 忽略 Firebase 的 keyChanged 消息
+  if (event.data && event.data.eventType === 'keyChanged') {
+    console.log('📨 忽略 Firebase keyChanged 消息');
+    return;
+  }
+  
   if (event.data && event.data.type === 'SKIP_WAITING') {
+    console.log('🔄 跳过等待，立即激活新版本');
     self.skipWaiting();
   }
+});
+
+// 错误处理
+self.addEventListener('error', event => {
+  console.error('❌ Service Worker 错误:', event.error);
+});
+
+self.addEventListener('unhandledrejection', event => {
+  console.error('❌ Service Worker Promise 拒绝:', event.reason);
 });
