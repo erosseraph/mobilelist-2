@@ -683,7 +683,11 @@
             </div>
             <div class="login-methods">
                 <button class="login-method-btn" id="email-login-btn">📧 邮箱登录/注册</button>
-                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录</button>
+                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（页面跳转）</button>
+            </div>
+            <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">
+                <p>Google登录将跳转到Google授权页面</p>
+                <p>授权完成后会自动返回本网站</p>
             </div>
         </div>
     </div>
@@ -946,6 +950,9 @@
             initPageNavigation();
             setupEventListeners();
             loadChart('chinese-pop');
+            
+            // 检查是否从重定向返回
+            setTimeout(checkRedirectResult, 1000);
         });
 
         // 修复：增强视口初始化
@@ -1017,6 +1024,29 @@
                 console.log('用户已登出');
                 updateUserUI();
             }
+        }
+
+        // 检查重定向登录结果
+        function checkRedirectResult() {
+            if (!auth) return;
+            
+            auth.getRedirectResult()
+                .then((result) => {
+                    if (result.user) {
+                        // 用户通过重定向登录成功
+                        console.log('重定向登录成功:', result.user.email);
+                        showMessage('✅ Google 登录成功！');
+                        updateUserUI();
+                    }
+                })
+                .catch((error) => {
+                    console.log('重定向登录处理:', error.code, error.message);
+                    // 常见的非错误情况，可以忽略
+                    if (error.code !== 'auth/redirect-cancelled-by-user' && 
+                        error.code !== 'auth/redirect-operation-pending') {
+                        console.error('重定向登录错误:', error);
+                    }
+                });
         }
 
         // 页面导航
@@ -1114,6 +1144,11 @@
             });
         }
 
+        // 检查是否是移动设备
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
         // 修复：完整的登录事件初始化函数
         function initLoginEvents() {
             const loginBtn = document.getElementById('login-btn');
@@ -1175,30 +1210,44 @@
             if (googleLoginBtn) {
                 googleLoginBtn.addEventListener('click', function() {
                     const provider = new firebase.auth.GoogleAuthProvider();
-                    auth.signInWithPopup(provider)
-                        .then((result) => {
-                            showMessage('✅ Google 登录成功！');
-                            loginModal.style.display = 'none';
-                        })
-                        .catch((error) => {
-                            if (error.code === 'auth/popup-blocked') {
-                                showMessage('❌ 弹出窗口被阻止，请允许弹出窗口或使用邮箱登录');
-                            } else if (error.code === 'auth/popup-closed-by-user') {
-                                // 用户关闭了弹出窗口，不显示错误
-                            } else {
-                                showMessage('❌ Google 登录失败: ' + error.message);
-                            }
-                        });
+                    
+                    // 为移动端和桌面端提供更好的用户体验
+                    if (isMobileDevice() || isMobileView) {
+                        // 移动端：直接使用重定向
+                        showMessage('正在跳转到Google登录页面...');
+                        auth.signInWithRedirect(provider);
+                    } else {
+                        // 桌面端：先尝试弹窗，失败时使用重定向
+                        auth.signInWithPopup(provider)
+                            .then((result) => {
+                                showMessage('✅ Google 登录成功！');
+                                loginModal.style.display = 'none';
+                            })
+                            .catch((error) => {
+                                if (error.code === 'auth/popup-blocked' || 
+                                    error.code === 'auth/popup-closed-by-user') {
+                                    // 弹窗被阻止或关闭，使用重定向
+                                    if (confirm('弹窗被阻止，是否使用页面跳转登录？')) {
+                                        showMessage('正在跳转到Google登录页面...');
+                                        auth.signInWithRedirect(provider);
+                                    }
+                                } else {
+                                    showMessage('❌ 登录失败: ' + error.message);
+                                }
+                            });
+                    }
                 });
             }
             
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function() {
-                    auth.signOut().then(() => {
-                        showMessage('已退出登录');
-                    }).catch((error) => {
-                        showMessage('退出失败: ' + error.message);
-                    });
+                    if (confirm('确定要退出登录吗？')) {
+                        auth.signOut().then(() => {
+                            showMessage('已退出登录');
+                        }).catch((error) => {
+                            showMessage('退出失败: ' + error.message);
+                        });
+                    }
                 });
             }
             
