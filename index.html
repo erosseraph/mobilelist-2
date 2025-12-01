@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>定制你的专属歌厅 v2.2.0</title>
+    <title>定制你的专属歌厅 v2.3.0 - 专业歌厅定制服务</title>
     
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico">
@@ -557,6 +557,8 @@
             z-index: 3000;
             font-size: 0.9rem;
             animation: fadeIn 0.3s ease;
+            max-width: 300px;
+            word-wrap: break-word;
         }
         
         .redirect-status.show {
@@ -584,7 +586,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 移动端响应式设计 - 修复版 */
+        /* 移动端响应式设计 */
         @media (max-width: 768px) {
             .container {
                 padding: 0 10px;
@@ -687,6 +689,12 @@
             .shipping-options {
                 grid-template-columns: 1fr;
             }
+            
+            .redirect-status {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
         }
 
         /* 小屏幕手机优化 */
@@ -753,13 +761,14 @@
             <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">
                 <p>Google登录使用安全的重定向流程</p>
                 <p>授权完成后会自动返回本网站</p>
+                <p style="font-size: 0.8rem; margin-top: 10px; color: #fdbb2d;">版本: 2.3.0 (重定向已修复)</p>
             </div>
         </div>
     </div>
 
     <div class="container">
         <nav class="navbar">
-            <div class="logo">🎤 定制你的专属歌厅 v2.2.0</div>
+            <div class="logo">🎤 定制你的专属歌厅 v2.3.0</div>
             <div class="nav-buttons">
                 <button class="nav-btn active" id="karaoke-nav">🎵 点歌系统</button>
                 <button class="nav-btn" id="pricing-nav">💰 价格配套</button>
@@ -769,7 +778,7 @@
             </div>
             <div class="user-section">
                 <div class="user-info" id="user-info">
-                    <div class="user-avatar" id="user-avatar">E</div>
+                    <div class="user-avatar" id="user-avatar">U</div>
                     <span class="user-email" id="user-email">用户</span>
                     <button class="logout-btn" id="logout-btn">退出</button>
                 </div>
@@ -966,7 +975,9 @@
     </div>
 
     <script>
-        // Firebase配置
+        // =============================================
+        // Firebase 配置
+        // =============================================
         const firebaseConfig = {
             apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
             authDomain: "karaoke-customizer.firebaseapp.com",
@@ -977,7 +988,9 @@
             measurementId: "G-D791D33Y6R"
         };
 
+        // =============================================
         // 应用状态变量
+        // =============================================
         let currentUser = null;
         let currentSongs = [];
         let playlist = [];
@@ -1012,23 +1025,39 @@
         const SONGS_PER_PAGE = 50;
         let isMobileView = window.innerWidth <= 768;
 
+        // =============================================
         // 页面初始化
+        // =============================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('初始化应用 v2.2.0...');
+            console.log('🚀 初始化歌厅定制应用 v2.3.0...');
+            console.log('📱 设备信息:', navigator.userAgent);
+            console.log('📏 屏幕尺寸:', window.innerWidth, 'x', window.innerHeight);
+            
             initializeViewport();
             initializeFirebase();
             initPageNavigation();
             setupEventListeners();
             loadChart('chinese-pop');
             
-            // 检查重定向结果 - 增强检查
-            checkRedirectResultEnhanced();
+            // 🔥 启动增强的重定向检查
+            setTimeout(() => {
+                checkRedirectResultEnhanced();
+            }, 1000);
+            
+            // 设置重定向处理
+            setupRedirectHandling();
         });
 
-        // 修复：增强视口初始化
+        // =============================================
+        // 核心函数
+        // =============================================
+
+        /**
+         * 初始化视口和布局
+         */
         function initializeViewport() {
             isMobileView = window.innerWidth <= 768;
-            console.log('当前视图:', isMobileView ? '移动端' : '桌面端');
+            console.log('📱 当前视图:', isMobileView ? '移动端' : '桌面端');
             
             // 确保页面正确显示
             if (isMobileView) {
@@ -1056,156 +1085,294 @@
                 const newIsMobile = window.innerWidth <= 768;
                 if (newIsMobile !== isMobileView) {
                     isMobileView = newIsMobile;
-                    console.log('视图切换:', isMobileView ? '移动端' : '桌面端');
+                    console.log('🔄 视图切换:', isMobileView ? '移动端' : '桌面端');
                     showPage('karaoke');
                     initializeViewport();
                 }
             });
         }
 
-        // Firebase初始化
+        /**
+         * 初始化Firebase
+         */
         function initializeFirebase() {
             try {
                 firebaseApp = firebase.initializeApp(firebaseConfig);
                 auth = firebaseApp.auth();
                 firestore = firebaseApp.firestore();
                 analytics = firebaseApp.analytics();
-                console.log('Firebase初始化成功');
+                console.log('✅ Firebase初始化成功');
+                
+                // 监听认证状态变化
                 auth.onAuthStateChanged(handleAuthStateChange);
+                
             } catch (error) {
-                console.error('Firebase初始化失败:', error);
+                console.error('❌ Firebase初始化失败:', error);
                 showMessage('Firebase初始化失败，请刷新页面重试');
             }
         }
 
+        /**
+         * 处理认证状态变化
+         */
         function handleAuthStateChange(user) {
             if (user) {
                 currentUser = user;
-                console.log('用户已登录:', user.email);
+                console.log('✅ 用户已登录:', user.email);
+                console.log('👤 用户信息:', {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    emailVerified: user.emailVerified
+                });
                 updateUserUI();
                 
                 // 用户登录后显示重定向成功消息
-                showRedirectStatus('Google登录成功！', 'success');
+                showRedirectStatus('登录成功！欢迎回来', 'success');
                 
                 // 清除重定向检查计时器
-                if (redirectCheckTimer) {
-                    clearTimeout(redirectCheckTimer);
-                    redirectCheckTimer = null;
-                }
+                clearRedirectCheck();
             } else {
                 currentUser = null;
-                console.log('用户已登出');
+                console.log('👋 用户已登出');
                 updateUserUI();
             }
         }
 
-        // 增强的重定向结果检查
-        function checkRedirectResultEnhanced() {
-            console.log('开始增强重定向检查...');
+        // =============================================
+        // 🔥 重定向修复核心功能
+        // =============================================
+
+        /**
+         * 设置重定向处理
+         */
+        function setupRedirectHandling() {
+            console.log('🔄 设置重定向处理...');
             
-            // 检查URL参数
-            const urlParams = new URLSearchParams(window.location.search);
-            const errorCode = urlParams.get('error');
-            const authStatus = urlParams.get('auth_status');
-            
-            if (errorCode) {
-                console.error('URL中检测到错误:', errorCode);
-                showRedirectStatus('登录过程中发生错误: ' + errorCode, 'error');
-                
-                // 清除URL中的错误参数
-                if (window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
+            // 监听页面可见性变化（处理重定向返回）
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    console.log('👁️ 页面重新可见，检查重定向状态');
+                    setTimeout(() => {
+                        checkRedirectResultEnhanced();
+                    }, 500);
                 }
+            });
+            
+            // 监听页面加载完成
+            window.addEventListener('load', function() {
+                setTimeout(() => {
+                    console.log('📄 页面加载完成，检查重定向状态');
+                    checkRedirectResultEnhanced();
+                }, 500);
+            });
+            
+            // 监听hash变化（部分OAuth重定向使用hash）
+            window.addEventListener('hashchange', function() {
+                console.log('🔗 Hash变化，检查重定向状态');
+                setTimeout(() => {
+                    checkRedirectResultEnhanced();
+                }, 500);
+            });
+            
+            console.log('✅ 重定向处理设置完成');
+        }
+
+        /**
+         * 🔥 增强的重定向结果检查
+         */
+        function checkRedirectResultEnhanced() {
+            console.log('🔄 增强重定向检查开始...');
+            
+            if (!auth) {
+                console.log('⚠️ Auth未初始化，跳过检查');
                 return;
+            }
+            
+            // 检查URL中的认证状态
+            const urlParams = new URLSearchParams(window.location.search);
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            
+            const authStatus = urlParams.get('auth_status') || hashParams.get('auth_status');
+            const authError = urlParams.get('error') || hashParams.get('error');
+            const authCode = urlParams.get('code') || hashParams.get('code');
+            
+            console.log('🔍 URL参数检查:', {
+                authStatus: authStatus,
+                authError: authError,
+                hasCode: !!authCode,
+                search: window.location.search,
+                hash: window.location.hash
+            });
+            
+            if (authError) {
+                console.error('❌ URL中检测到认证错误:', authError);
+                showRedirectStatus(`认证错误: ${authError}`, 'error');
+                
+                // 清除错误参数
+                if (window.history.replaceState) {
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }
+                
+                clearRedirectCheck();
+                return;
+            }
+            
+            if (authCode) {
+                console.log('🎯 检测到OAuth授权码');
+                showRedirectStatus('检测到授权码，正在处理...', 'info');
             }
             
             if (authStatus === 'success') {
-                console.log('URL参数显示登录成功');
-                showRedirectStatus('登录成功！正在获取用户信息...', 'info');
+                console.log('✅ URL参数显示认证成功');
+                showRedirectStatus('认证成功，正在处理...', 'info');
                 
-                // 清除URL中的成功参数
+                // 清除成功参数
                 if (window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
                 }
             }
             
-            if (!auth) {
-                console.log('Auth未初始化，延迟检查...');
-                setTimeout(checkRedirectResultEnhanced, 1000);
-                return;
-            }
-            
-            console.log('检查Firebase重定向结果...');
-            
+            // 检查Firebase重定向结果
             auth.getRedirectResult()
                 .then((result) => {
-                    console.log('getRedirectResult返回结果:', result);
+                    console.log('📊 getRedirectResult详细结果:', {
+                        user: result.user ? `存在 (${result.user.email})` : 'null',
+                        credential: result.credential ? '存在' : 'null',
+                        operationType: result.operationType,
+                        additionalUserInfo: result.additionalUserInfo
+                    });
                     
                     if (result.user) {
-                        // 用户通过重定向登录成功
-                        console.log('重定向登录成功:', result.user.email);
+                        // 🔥 成功！用户通过重定向登录成功
+                        console.log('🎉 重定向登录成功:', result.user.email);
                         showMessage('✅ Google登录成功！');
-                        showRedirectStatus('Google登录成功！', 'success');
+                        showRedirectStatus('Google登录成功！欢迎 ' + result.user.email, 'success');
+                        
+                        // 清除检查
+                        clearRedirectCheck();
                         
                         // 清除URL参数
                         if (window.history.replaceState) {
-                            window.history.replaceState({}, document.title, window.location.pathname);
+                            const cleanUrl = window.location.pathname;
+                            window.history.replaceState({}, document.title, cleanUrl);
                         }
                         
-                        // 停止重定向检查
-                        if (redirectCheckTimer) {
-                            clearTimeout(redirectCheckTimer);
-                            redirectCheckTimer = null;
+                        // 关闭登录模态框
+                        const loginModal = document.getElementById('login-modal');
+                        if (loginModal) {
+                            loginModal.style.display = 'none';
                         }
+                        
+                        // 触发页面重新加载用户界面
+                        setTimeout(() => {
+                            if (auth.currentUser) {
+                                handleAuthStateChange(auth.currentUser);
+                            }
+                        }, 500);
+                        
                     } else if (result.credential) {
-                        console.log('获取到凭证但没有用户');
-                        showRedirectStatus('获取到凭证，正在处理...', 'warning');
+                        console.log('🔑 获取到凭证但没有用户对象');
+                        showRedirectStatus('处理凭证中...', 'warning');
+                        
                     } else {
-                        console.log('没有从重定向返回的用户或凭证');
+                        console.log('ℹ️ 没有从重定向返回的用户或凭证');
+                        // 这是正常情况，当用户还没有完成重定向流程时
                     }
                 })
                 .catch((error) => {
-                    console.log('重定向结果处理错误:', error.code, error.message);
+                    console.log('⚠️ 重定向结果检查错误:', error.code, error.message);
                     
-                    // 处理常见错误
+                    // 处理特定错误
                     const errorHandlers = {
                         'auth/redirect-cancelled-by-user': () => {
-                            console.log('用户取消了重定向登录');
+                            console.log('🚫 用户取消了重定向登录');
                             showRedirectStatus('登录已取消', 'warning');
+                            clearRedirectCheck();
                         },
                         'auth/redirect-operation-pending': () => {
-                            console.log('重定向操作正在进行中');
+                            console.log('⏳ 重定向操作正在进行中');
                             showRedirectStatus('正在处理登录...', 'info');
                             // 继续检查
-                            if (redirectCheckCount < MAX_REDIRECT_CHECKS) {
-                                redirectCheckCount++;
-                                redirectCheckTimer = setTimeout(checkRedirectResultEnhanced, 2000);
-                            }
                         },
                         'auth/no-auth-event': () => {
-                            console.log('没有认证事件');
-                            // 正常情况，不需要特殊处理
+                            console.log('ℹ️ 没有认证事件 - 正常状态');
+                            // 正常情况，无需处理
                         },
                         'auth/popup-blocked': () => {
-                            console.log('弹窗被阻止，尝试使用重定向');
+                            console.log('🛡️ 弹窗被阻止，尝试使用重定向');
                             showRedirectStatus('弹窗被阻止，请使用重定向登录', 'warning');
                         },
                         'auth/popup-closed-by-user': () => {
-                            console.log('用户关闭了弹窗');
+                            console.log('🚫 用户关闭了弹窗');
                             showRedirectStatus('登录窗口已关闭', 'warning');
+                        },
+                        'auth/unauthorized-domain': () => {
+                            console.error('❌ 未授权的域名');
+                            showRedirectStatus('域名未授权，请在Firebase控制台中添加此域名', 'error');
+                        },
+                        'auth/operation-not-supported-in-this-environment': () => {
+                            console.error('❌ 环境不支持此操作');
+                            showRedirectStatus('当前环境不支持此登录方式', 'error');
                         }
                     };
                     
                     if (errorHandlers[error.code]) {
                         errorHandlers[error.code]();
                     } else if (!error.code.includes('no-auth-event')) {
-                        console.error('重定向登录错误:', error);
+                        console.error('❌ 重定向登录错误:', error);
                         showRedirectStatus('登录错误: ' + error.message, 'error');
                     }
                 });
         }
 
-        // 显示重定向状态
+        /**
+         * 启动重定向检查
+         */
+        function startRedirectCheck() {
+            console.log('🔄 启动重定向检查...');
+            redirectCheckCount = 0;
+            clearRedirectCheck();
+            
+            // 立即检查一次
+            setTimeout(() => {
+                checkRedirectResultEnhanced();
+            }, 500);
+            
+            // 设置定期检查
+            redirectCheckTimer = setInterval(() => {
+                redirectCheckCount++;
+                console.log(`🔄 重定向检查 ${redirectCheckCount}/${MAX_REDIRECT_CHECKS}`);
+                
+                if (redirectCheckCount >= MAX_REDIRECT_CHECKS) {
+                    console.log('⏰ 重定向检查超时');
+                    clearRedirectCheck();
+                    showRedirectStatus('登录超时，请重试', 'warning');
+                    return;
+                }
+                
+                checkRedirectResultEnhanced();
+            }, 2000);
+        }
+
+        /**
+         * 清除重定向检查
+         */
+        function clearRedirectCheck() {
+            if (redirectCheckTimer) {
+                clearInterval(redirectCheckTimer);
+                redirectCheckTimer = null;
+            }
+            redirectCheckCount = 0;
+            console.log('🧹 清除重定向检查');
+        }
+
+        /**
+         * 显示重定向状态
+         */
         function showRedirectStatus(message, type = 'info') {
             const statusEl = document.getElementById('redirect-status');
             if (!statusEl) return;
@@ -1213,13 +1380,18 @@
             statusEl.textContent = message;
             statusEl.className = `redirect-status show redirect-${type}`;
             
-            // 5秒后自动隐藏
+            console.log(`📢 重定向状态: ${type.toUpperCase()} - ${message}`);
+            
+            // 5秒后自动隐藏（成功消息立即隐藏）
+            const hideDelay = type === 'success' ? 3000 : 5000;
             setTimeout(() => {
                 statusEl.classList.remove('show');
-            }, 5000);
+            }, hideDelay);
         }
 
+        // =============================================
         // 页面导航
+        // =============================================
         function initPageNavigation() {
             document.getElementById('karaoke-nav').addEventListener('click', function() {
                 showPage('karaoke');
@@ -1262,7 +1434,9 @@
             activeButton.classList.add('active');
         }
 
-        // 事件监听器 - 修复版
+        // =============================================
+        // 事件监听器
+        // =============================================
         function setupEventListeners() {
             // 排行榜事件
             setupChartEvents('charts-view');
@@ -1325,12 +1499,16 @@
             }
         }
 
-        // 检查是否是移动设备
+        /**
+         * 检查是否是移动设备
+         */
         function isMobileDevice() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
-        // 修复：增强登录事件处理
+        /**
+         * 🔥 增强登录事件处理
+         */
         function initLoginEvents() {
             const loginBtn = document.getElementById('login-btn');
             const closeLoginBtn = document.getElementById('close-login');
@@ -1341,18 +1519,21 @@
             
             if (loginBtn) {
                 loginBtn.addEventListener('click', function() {
+                    console.log('👆 点击登录按钮');
                     loginModal.style.display = 'flex';
                 });
             }
             
             if (closeLoginBtn) {
                 closeLoginBtn.addEventListener('click', function() {
+                    console.log('❌ 关闭登录模态框');
                     loginModal.style.display = 'none';
                 });
             }
             
             if (emailLoginBtn) {
                 emailLoginBtn.addEventListener('click', function() {
+                    console.log('📧 邮箱登录/注册');
                     const email = prompt('请输入邮箱地址:');
                     if (!email) return;
                     
@@ -1361,6 +1542,7 @@
                     
                     auth.createUserWithEmailAndPassword(email, password)
                         .then((userCredential) => {
+                            console.log('🎉 邮箱注册成功:', userCredential.user.email);
                             showMessage('🎉 注册成功！');
                             loginModal.style.display = 'none';
                             showRedirectStatus('邮箱注册成功！', 'success');
@@ -1369,21 +1551,26 @@
                             if (error.code === 'auth/email-already-in-use') {
                                 auth.signInWithEmailAndPassword(email, password)
                                     .then(() => {
+                                        console.log('✅ 邮箱登录成功:', email);
                                         showMessage('✅ 登录成功！');
                                         loginModal.style.display = 'none';
                                         showRedirectStatus('邮箱登录成功！', 'success');
                                     })
                                     .catch(loginError => {
+                                        console.error('❌ 邮箱登录失败:', loginError);
                                         showMessage('❌ 登录失败: ' + loginError.message);
                                         showRedirectStatus('登录失败: ' + loginError.message, 'error');
                                     });
                             } else if (error.code === 'auth/invalid-email') {
+                                console.error('❌ 邮箱格式不正确');
                                 showMessage('❌ 邮箱格式不正确');
                                 showRedirectStatus('邮箱格式不正确', 'error');
                             } else if (error.code === 'auth/weak-password') {
+                                console.error('❌ 密码太弱');
                                 showMessage('❌ 密码太弱，请使用至少6位字符');
                                 showRedirectStatus('密码太弱', 'error');
                             } else {
+                                console.error('❌ 注册错误:', error);
                                 showMessage('❌ 错误: ' + error.message);
                                 showRedirectStatus('错误: ' + error.message, 'error');
                             }
@@ -1394,68 +1581,89 @@
             // 🔥 关键修复：Google登录处理
             if (googleLoginBtn) {
                 googleLoginBtn.addEventListener('click', function() {
+                    console.log('👆 点击Google登录按钮');
+                    
                     if (!auth) {
+                        console.error('❌ 认证系统未初始化');
                         showMessage('认证系统未初始化，请刷新页面');
                         return;
                     }
                     
                     const provider = new firebase.auth.GoogleAuthProvider();
                     
-                    // 🔥 关键修复：添加所有必要的作用域和参数
+                    // 🔥 关键修复：完整的OAuth 2.0配置
                     provider.addScope('email');
                     provider.addScope('profile');
                     provider.addScope('openid');
                     
-                    // 设置额外的参数
+                    // 🔥 关键修复：设置完整的自定义参数
                     provider.setCustomParameters({
                         prompt: 'select_account consent',
                         include_granted_scopes: 'true',
                         response_type: 'code',
-                        access_type: 'offline'
+                        access_type: 'offline',
+                        hd: '*', // 允许所有Google域
+                        auth_type: 'reauthenticate'
                     });
                     
-                    console.log('Google登录配置:', {
+                    console.log('🔧 Google登录配置:', {
                         scopes: provider.scopes,
                         customParameters: provider.customParameters,
-                        providerId: provider.providerId
+                        providerId: provider.providerId,
+                        isSignInWithRedirectSupported: firebase.auth.Auth.Persistence.LOCAL
                     });
                     
                     // 显示重定向状态
-                    showRedirectStatus('正在跳转到Google登录页面...', 'info');
+                    showRedirectStatus('正在准备Google登录...', 'info');
                     
-                    // 对于所有设备都使用重定向，这是最可靠的方式
+                    // 清除可能的残留状态
+                    if (window.history.replaceState) {
+                        const cleanUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
+                    }
+                    
+                    // 开始重定向检查
+                    startRedirectCheck();
+                    
+                    // 🔥 执行重定向登录 - 这是最可靠的方式
                     try {
-                        // 开始重定向检查
-                        redirectCheckCount = 0;
-                        if (redirectCheckTimer) {
-                            clearTimeout(redirectCheckTimer);
-                        }
-                        redirectCheckTimer = setTimeout(checkRedirectResultEnhanced, 1000);
-                        
-                        // 执行重定向登录
-                        auth.signInWithRedirect(provider);
-                        
-                        // 显示等待消息
-                        setTimeout(() => {
-                            showRedirectStatus('如果页面没有自动跳转，请等待几秒...', 'warning');
-                        }, 2000);
-                        
-                    } catch (redirectError) {
-                        console.error('重定向失败:', redirectError);
-                        showRedirectStatus('重定向失败: ' + redirectError.message, 'error');
-                        
-                        // 尝试使用弹窗作为备选方案
-                        auth.signInWithPopup(provider)
-                            .then((result) => {
-                                showMessage('✅ Google登录成功！');
-                                loginModal.style.display = 'none';
-                                showRedirectStatus('Google登录成功！', 'success');
+                        console.log('🔄 调用signInWithRedirect...');
+                        auth.signInWithRedirect(provider)
+                            .then(() => {
+                                console.log('✅ signInWithRedirect调用成功');
+                                showRedirectStatus('正在跳转到Google登录页面...', 'info');
+                                
+                                // 显示等待消息
+                                setTimeout(() => {
+                                    if (!auth.currentUser) {
+                                        showRedirectStatus('如果页面没有自动跳转，请稍等...', 'warning');
+                                    }
+                                }, 2000);
                             })
-                            .catch((popupError) => {
-                                console.error('弹窗登录失败:', popupError);
-                                showRedirectStatus('登录失败: ' + popupError.message, 'error');
-                                showMessage('❌ 登录失败: ' + popupError.message);
+                            .catch((error) => {
+                                console.error('❌ signInWithRedirect调用失败:', error);
+                                showRedirectStatus('重定向失败: ' + error.message, 'error');
+                                
+                                // 尝试使用弹窗作为备选方案
+                                console.log('🪟 尝试弹窗登录...');
+                                auth.signInWithPopup(provider)
+                                    .then((result) => {
+                                        console.log('✅ 弹窗登录成功:', result.user.email);
+                                        showMessage('✅ Google登录成功！');
+                                        loginModal.style.display = 'none';
+                                        showRedirectStatus('Google登录成功！', 'success');
+                                    })
+                                    .catch((popupError) => {
+                                        console.error('❌ 弹窗登录失败:', popupError);
+                                        showRedirectStatus('登录失败: ' + popupError.message, 'error');
+                                        showMessage('❌ 登录失败: ' + popupError.message);
+                                    });
                             });
+                            
+                    } catch (error) {
+                        console.error('❌ 登录过程异常:', error);
+                        showRedirectStatus('登录异常: ' + error.message, 'error');
+                        showMessage('❌ 登录异常: ' + error.message);
                     }
                 });
             }
@@ -1464,9 +1672,11 @@
                 logoutBtn.addEventListener('click', function() {
                     if (confirm('确定要退出登录吗？')) {
                         auth.signOut().then(() => {
+                            console.log('👋 用户退出登录');
                             showMessage('已退出登录');
                             showRedirectStatus('已退出登录', 'info');
                         }).catch((error) => {
+                            console.error('❌ 退出失败:', error);
                             showMessage('退出失败: ' + error.message);
                             showRedirectStatus('退出失败', 'error');
                         });
@@ -1477,6 +1687,7 @@
             // 点击模态框背景关闭
             loginModal.addEventListener('click', function(e) {
                 if (e.target === loginModal) {
+                    console.log('👆 点击模态框背景关闭');
                     loginModal.style.display = 'none';
                 }
             });
@@ -1484,6 +1695,7 @@
             // ESC键关闭模态框
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && loginModal.style.display === 'flex') {
+                    console.log('⌨️ ESC键关闭模态框');
                     loginModal.style.display = 'none';
                 }
             });
@@ -1588,7 +1800,7 @@
                     updatePlaylistCount();
                 }
             } catch (error) {
-                console.error('加载用户歌单失败:', error);
+                console.error('❌ 加载用户歌单失败:', error);
             }
         }
         
@@ -1602,10 +1814,12 @@
                     updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
                     songCount: playlist.length,
                     userId: currentUser.uid,
-                    userEmail: currentUser.email
+                    userEmail: currentUser.email,
+                    userName: currentUser.displayName || currentUser.email.split('@')[0]
                 });
+                console.log('💾 歌单保存成功:', playlist.length, '首歌曲');
             } catch (error) {
-                console.error('保存歌单失败:', error);
+                console.error('❌ 保存歌单失败:', error);
             }
         }
 
@@ -1648,7 +1862,7 @@
                 // 使用自己的代理API
                 const url = `/api/itunes-proxy?term=${encodedTerm}&limit=${limit}&offset=${offset}`;
                 
-                console.log('请求自己的API代理:', url);
+                console.log('🔍 搜索请求:', url);
                 
                 const response = await fetch(url);
                 
@@ -1658,7 +1872,7 @@
                 }
                 
                 const data = await response.json();
-                console.log('搜索结果:', data.resultCount, '条');
+                console.log('✅ 搜索结果:', data.resultCount, '条');
                 
                 if (data.resultCount === 0) {
                     return [];
@@ -1680,14 +1894,14 @@
                 );
                 
             } catch (error) {
-                console.error('搜索失败:', error);
+                console.error('❌ 搜索失败:', error);
                 throw error;
             }
         }
 
         // 排行榜功能
         async function loadChart(category) {
-            console.log('加载 ' + category + ' 排行榜 第 ' + currentChartPage + ' 页...');
+            console.log('📊 加载 ' + category + ' 排行榜 第 ' + currentChartPage + ' 页...');
             
             const songsContainer = getCurrentSongsContainer();
             const pagination = getCurrentPaginationContainer();
@@ -1738,7 +1952,7 @@
                 updateChartsPagination();
                 
             } catch (error) {
-                console.error('加载排行榜失败:', error);
+                console.error('❌ 加载排行榜失败:', error);
                 if (currentChartPage === 1) {
                     if (songsContainer) {
                         songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
@@ -1889,7 +2103,7 @@
                 updateArtistPagination(songs.length, isMobile);
                 
             } catch (error) {
-                console.error('加载歌手歌曲失败:', error);
+                console.error('❌ 加载歌手歌曲失败:', error);
                 if (page === 1) {
                     if (songsContainer) {
                         songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
@@ -2145,7 +2359,7 @@
                 renderSongsToCurrentContainer(currentSongs);
                 showMessage('找到 ' + currentSongs.length + ' 首相关歌曲');
             } catch (error) {
-                console.error('搜索失败:', error);
+                console.error('❌ 搜索失败:', error);
                 if (songsContainer) {
                     songsContainer.innerHTML = '<div class="error">搜索失败，请重试</div>';
                 }
@@ -2161,7 +2375,7 @@
             }
             currentAudio = new Audio(previewUrl);
             currentAudio.play().catch(error => {
-                console.error('播放失败:', error);
+                console.error('❌ 播放失败:', error);
                 showMessage('播放失败，请重试');
             });
             showMessage('开始试听... (30秒预览)');
@@ -2178,7 +2392,7 @@
         function showMessage(message) {
             const messageEl = document.createElement('div');
             messageEl.textContent = message;
-            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000; font-size: 14px; max-width: 300px; word-wrap: break-word;';
+            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000; font-size: 14px; max-width: 300px; word-wrap: break-word; animation: fadeIn 0.3s ease;';
             document.body.appendChild(messageEl);
             setTimeout(() => {
                 messageEl.style.opacity = '0';
