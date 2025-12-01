@@ -13,11 +13,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
+    <!-- Firebase SDK - 升级到最新兼容版本 -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics-compat.js"></script>
     
     <style>
         * {
@@ -683,11 +683,11 @@
             </div>
             <div class="login-methods">
                 <button class="login-method-btn" id="email-login-btn">📧 邮箱登录/注册</button>
-                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（可能需跳转页面）</button>
+                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（弹窗模式）</button>
             </div>
             <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">
-                <p>Google登录将跳转到Google授权页面</p>
-                <p>授权完成后会自动返回本网站</p>
+                <p>使用弹窗进行 Google 登录</p>
+                <p>如果弹窗被阻止，请允许弹窗或使用桌面浏览器</p>
             </div>
         </div>
     </div>
@@ -951,8 +951,7 @@
             setupEventListeners();
             loadChart('chinese-pop');
             
-            // 🔧 修复：延长等待时间，确保 Firebase 完全初始化
-            // 从 1000ms 改为 3000ms
+            // 检查是否从重定向返回
             setTimeout(checkRedirectResult, 3000);
         });
 
@@ -1008,7 +1007,18 @@
                 firestore = firebaseApp.firestore();
                 analytics = firebaseApp.analytics();
                 console.log('Firebase初始化成功');
-                auth.onAuthStateChanged(handleAuthStateChange);
+                
+                // 设置持久化为 LOCAL
+                auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                    .then(() => {
+                        console.log('Firebase 持久化设置为 LOCAL');
+                        auth.onAuthStateChanged(handleAuthStateChange);
+                    })
+                    .catch(error => {
+                        console.error('设置持久化失败:', error);
+                        auth.onAuthStateChanged(handleAuthStateChange);
+                    });
+                    
             } catch (error) {
                 console.error('Firebase初始化失败:', error);
                 showMessage('Firebase初始化失败，请刷新页面重试');
@@ -1020,7 +1030,7 @@
                 currentUser = user;
                 console.log('用户已登录:', user.email);
                 
-                // 🔧 新增：将用户信息存入 localStorage 作为备份
+                // 将用户信息存入 localStorage 作为备份
                 try {
                     localStorage.setItem('firebase_user_backup', JSON.stringify({
                         uid: user.uid,
@@ -1039,7 +1049,7 @@
                 currentUser = null;
                 console.log('用户已登出');
                 
-                // 🔧 新增：清除备份（可选）
+                // 清除备份
                 try {
                     localStorage.removeItem('firebase_user_backup');
                 } catch (e) {
@@ -1052,7 +1062,10 @@
 
         // 检查重定向登录结果
         function checkRedirectResult() {
-            if (!auth) return;
+            if (!auth) {
+                console.log('checkRedirectResult: auth 未初始化');
+                return;
+            }
             
             console.log('检查重定向登录结果...');
             
@@ -1190,12 +1203,7 @@
             });
         }
 
-        // 检查是否是移动设备
-        function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-
-        // 修复：完整的登录事件初始化函数 - 已修复Google登录问题
+        // 修复：完整的登录事件初始化函数 - 已修改为弹窗模式
         function initLoginEvents() {
             const loginBtn = document.getElementById('login-btn');
             const closeLoginBtn = document.getElementById('close-login');
@@ -1257,43 +1265,51 @@
                 googleLoginBtn.addEventListener('click', function() {
                     const provider = new firebase.auth.GoogleAuthProvider();
                     
-                    // 🔥 关键修复：添加email范围和prompt参数
+                    // 🔥 关键修复：使用弹窗模式
                     provider.addScope('email');
                     provider.addScope('profile');
                     provider.setCustomParameters({
-                        prompt: 'select_account'
+                        prompt: 'select_account',
+                        display: 'popup',
+                        ux_mode: 'popup'
                     });
                     
-                    console.log('Google登录配置:', {
-                        scopes: provider.scopes,
-                        customParameters: provider.customParameters
-                    });
+                    console.log('使用弹窗模式进行 Google 登录');
                     
-                    // 为移动端和桌面端提供更好的用户体验
-                    if (isMobileDevice() || isMobileView) {
-                        // 移动端：直接使用重定向
-                        showMessage('正在跳转到Google登录页面...');
-                        auth.signInWithRedirect(provider);
-                    } else {
-                        // 桌面端：先尝试弹窗，失败时使用重定向
-                        auth.signInWithPopup(provider)
-                            .then((result) => {
-                                showMessage('✅ Google 登录成功！');
-                                loginModal.style.display = 'none';
-                            })
-                            .catch((error) => {
-                                if (error.code === 'auth/popup-blocked' || 
-                                    error.code === 'auth/popup-closed-by-user') {
-                                    // 弹窗被阻止或关闭，使用重定向
-                                    if (confirm('弹窗被阻止，是否使用页面跳转登录？')) {
-                                        showMessage('正在跳转到Google登录页面...');
-                                        auth.signInWithRedirect(provider);
-                                    }
-                                } else {
-                                    showMessage('❌ 登录失败: ' + error.message);
+                    // 尝试使用弹窗登录
+                    auth.signInWithPopup(provider)
+                        .then((result) => {
+                            console.log('✅ 弹窗登录成功:', result.user.email);
+                            showMessage('✅ Google 登录成功！');
+                            loginModal.style.display = 'none';
+                            
+                            // 弹窗登录成功，不需要处理重定向
+                            currentUser = result.user;
+                            updateUserUI();
+                        })
+                        .catch((error) => {
+                            console.error('弹窗登录失败:', error.code, error.message);
+                            
+                            // 处理常见的弹窗错误
+                            if (error.code === 'auth/popup-blocked') {
+                                showMessage('❌ 弹窗被浏览器阻止，请允许弹窗或尝试以下方法：\n1. 检查地址栏的弹窗阻止图标\n2. 允许该网站的弹窗\n3. 或使用桌面浏览器');
+                                
+                                // 提供重定向作为备选方案
+                                if (confirm('弹窗被阻止，是否使用页面跳转方式登录？')) {
+                                    console.log('切换到重定向模式...');
+                                    showMessage('正在跳转到Google登录页面...');
+                                    auth.signInWithRedirect(provider);
                                 }
-                            });
-                    }
+                            } else if (error.code === 'auth/popup-closed-by-user') {
+                                showMessage('❌ 登录弹窗被关闭，请重试');
+                            } else if (error.code === 'auth/cancelled-popup-request') {
+                                showMessage('❌ 登录请求被取消，请重试');
+                            } else if (error.code === 'auth/account-exists-with-different-credential') {
+                                showMessage('❌ 该邮箱已使用其他方式注册');
+                            } else {
+                                showMessage('❌ 登录失败: ' + error.message);
+                            }
+                        });
                 });
             }
             
@@ -2115,6 +2131,39 @@
                 }
             }
         });
+
+        // 🔧 新增：检查认证重定向参数
+        function checkAuthRedirectParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasFirebaseParams = urlParams.has('__firebase_request_key') || 
+                                   urlParams.has('apiKey');
+            
+            if (hasFirebaseParams || window.location.hash.includes('access_token')) {
+                console.log('=== 检测到认证重定向参数 ===');
+                console.log('完整URL:', window.location.href);
+                console.log('Search参数:', window.location.search);
+                console.log('Hash参数:', window.location.hash);
+                
+                // 延迟处理重定向
+                setTimeout(() => {
+                    if (auth) {
+                        auth.getRedirectResult()
+                          .then(result => {
+                              console.log('延迟重定向结果:', result);
+                              if (result.user) {
+                                  console.log('延迟处理登录成功:', result.user.email);
+                              }
+                          })
+                          .catch(error => {
+                              console.log('延迟重定向错误:', error);
+                          });
+                    }
+                }, 3000);
+            }
+        }
+
+        // 在页面加载后调用
+        setTimeout(checkAuthRedirectParams, 500);
     </script>
 </body>
 </html>
