@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>定制你的专属歌厅 v2.1.1</title>
-
+    
+    <!-- Favicon -->
     <link rel="icon" href="/favicon.ico">
     
     <meta name="theme-color" content="#1a2a6c">
@@ -896,7 +897,7 @@
     </div>
 
     <script>
-        // Firebase配置
+        // Firebase配置 - 使用固定配置
         const firebaseConfig = {
             apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
             authDomain: "karaoke-customizer.firebaseapp.com",
@@ -1002,15 +1003,18 @@
                 auth.onAuthStateChanged(handleAuthStateChange);
             } catch (error) {
                 console.error('Firebase初始化失败:', error);
+                showMessage('Firebase初始化失败，请刷新页面重试');
             }
         }
 
         function handleAuthStateChange(user) {
             if (user) {
                 currentUser = user;
+                console.log('用户已登录:', user.email);
                 updateUserUI();
             } else {
                 currentUser = null;
+                console.log('用户已登出');
                 updateUserUI();
             }
         }
@@ -1110,13 +1114,14 @@
             });
         }
 
-        // 修复：独立的登录事件初始化函数
+        // 修复：完整的登录事件初始化函数
         function initLoginEvents() {
             const loginBtn = document.getElementById('login-btn');
             const closeLoginBtn = document.getElementById('close-login');
             const emailLoginBtn = document.getElementById('email-login-btn');
             const googleLoginBtn = document.getElementById('google-login-btn');
             const loginModal = document.getElementById('login-modal');
+            const logoutBtn = document.getElementById('logout-btn');
             
             if (loginBtn) {
                 loginBtn.addEventListener('click', function() {
@@ -1132,13 +1137,68 @@
             
             if (emailLoginBtn) {
                 emailLoginBtn.addEventListener('click', function() {
-                    alert('邮箱登录功能开发中...');
+                    // 创建邮箱登录界面
+                    const email = prompt('请输入邮箱地址:');
+                    if (!email) return;
+                    
+                    const password = prompt('请输入密码:');
+                    if (!password) return;
+                    
+                    // 先尝试创建用户，如果失败则尝试登录
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            showMessage('🎉 注册成功！');
+                            loginModal.style.display = 'none';
+                        })
+                        .catch((error) => {
+                            if (error.code === 'auth/email-already-in-use') {
+                                // 如果邮箱已存在，尝试登录
+                                auth.signInWithEmailAndPassword(email, password)
+                                    .then(() => {
+                                        showMessage('✅ 登录成功！');
+                                        loginModal.style.display = 'none';
+                                    })
+                                    .catch(loginError => {
+                                        showMessage('❌ 登录失败: ' + loginError.message);
+                                    });
+                            } else if (error.code === 'auth/invalid-email') {
+                                showMessage('❌ 邮箱格式不正确');
+                            } else if (error.code === 'auth/weak-password') {
+                                showMessage('❌ 密码太弱，请使用至少6位字符');
+                            } else {
+                                showMessage('❌ 错误: ' + error.message);
+                            }
+                        });
                 });
             }
             
             if (googleLoginBtn) {
                 googleLoginBtn.addEventListener('click', function() {
-                    alert('Google登录功能开发中...');
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    auth.signInWithPopup(provider)
+                        .then((result) => {
+                            showMessage('✅ Google 登录成功！');
+                            loginModal.style.display = 'none';
+                        })
+                        .catch((error) => {
+                            if (error.code === 'auth/popup-blocked') {
+                                showMessage('❌ 弹出窗口被阻止，请允许弹出窗口或使用邮箱登录');
+                            } else if (error.code === 'auth/popup-closed-by-user') {
+                                // 用户关闭了弹出窗口，不显示错误
+                            } else {
+                                showMessage('❌ Google 登录失败: ' + error.message);
+                            }
+                        });
+                });
+            }
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    auth.signOut().then(() => {
+                        showMessage('已退出登录');
+                    }).catch((error) => {
+                        showMessage('退出失败: ' + error.message);
+                    });
                 });
             }
             
@@ -1222,10 +1282,46 @@
                 userAvatar.textContent = initial;
                 userEmail.textContent = displayName;
                 document.getElementById('admin-section').style.display = 'block';
+                
+                // 加载用户的歌单
+                loadUserPlaylist();
             } else {
                 userInfo.style.display = 'none';
                 loginBtn.style.display = 'block';
                 document.getElementById('admin-section').style.display = 'none';
+            }
+        }
+        
+        async function loadUserPlaylist() {
+            if (!currentUser) return;
+            
+            try {
+                const playlistRef = firestore.collection('playlists').doc(currentUser.uid);
+                const doc = await playlistRef.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    playlist = data.songs || [];
+                    renderPlaylist();
+                    updatePlaylistCount();
+                }
+            } catch (error) {
+                console.error('加载用户歌单失败:', error);
+            }
+        }
+        
+        async function saveUserPlaylist() {
+            if (!currentUser) return;
+            
+            try {
+                const playlistRef = firestore.collection('playlists').doc(currentUser.uid);
+                await playlistRef.set({
+                    songs: playlist,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    songCount: playlist.length
+                });
+            } catch (error) {
+                console.error('保存歌单失败:', error);
             }
         }
 
@@ -1260,50 +1356,50 @@
             }
         }
 
-       // 使用自己的API代理
-async function searchMusic(term, limit = 50, offset = 0) {
-    try {
-        const encodedTerm = encodeURIComponent(term);
-        
-        // 使用自己的代理API
-        const url = `/api/itunes-proxy?term=${encodedTerm}&limit=${limit}&offset=${offset}`;
-        
-        console.log('请求自己的API代理:', url);
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+        // 使用自己的API代理
+        async function searchMusic(term, limit = 50, offset = 0) {
+            try {
+                const encodedTerm = encodeURIComponent(term);
+                
+                // 使用自己的代理API
+                const url = `/api/itunes-proxy?term=${encodedTerm}&limit=${limit}&offset=${offset}`;
+                
+                console.log('请求自己的API代理:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('搜索结果:', data.resultCount, '条');
+                
+                if (data.resultCount === 0) {
+                    return [];
+                }
+                
+                return data.results.map(track => ({
+                    id: track.trackId,
+                    title: track.trackName,
+                    artist: track.artistName,
+                    album: track.collectionName,
+                    duration: track.trackTimeMillis,
+                    previewUrl: track.previewUrl,
+                    artwork: track.artworkUrl100,
+                    popularity: track.trackNumber || 0
+                })).filter(track => 
+                    track.previewUrl && 
+                    track.title && 
+                    track.artist
+                );
+                
+            } catch (error) {
+                console.error('搜索失败:', error);
+                throw error;
+            }
         }
-        
-        const data = await response.json();
-        console.log('搜索结果:', data.resultCount, '条');
-        
-        if (data.resultCount === 0) {
-            return [];
-        }
-        
-        return data.results.map(track => ({
-            id: track.trackId,
-            title: track.trackName,
-            artist: track.artistName,
-            album: track.collectionName,
-            duration: track.trackTimeMillis,
-            previewUrl: track.previewUrl,
-            artwork: track.artworkUrl100,
-            popularity: track.trackNumber || 0
-        })).filter(track => 
-            track.previewUrl && 
-            track.title && 
-            track.artist
-        );
-        
-    } catch (error) {
-        console.error('搜索失败:', error);
-        throw error;
-    }
-}
 
         // 排行榜功能 - 修复：增强移动端支持
         async function loadChart(category) {
@@ -1372,42 +1468,38 @@ async function searchMusic(term, limit = 50, offset = 0) {
         }
 
         // 修复容器选择逻辑
-function getCurrentSongsContainer() {
-    if (isMobileView) {
-        const activeTab = document.querySelector('.mobile-tab.active');
-        if (activeTab && activeTab.dataset.tab === 'songs') {
-            const artistView = document.getElementById('artist-view-mobile');
-            
-            // 修复：使用计算样式准确检查显示状态
-            const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
-            
-            if (artistView && artistViewComputed !== 'none') {
-                return document.getElementById('artist-songs-container-mobile');
+        function getCurrentSongsContainer() {
+            if (isMobileView) {
+                const activeTab = document.querySelector('.mobile-tab.active');
+                if (activeTab && activeTab.dataset.tab === 'songs') {
+                    const artistView = document.getElementById('artist-view-mobile');
+                    
+                    // 修复：使用计算样式准确检查显示状态
+                    const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
+                    
+                    if (artistView && artistViewComputed !== 'none') {
+                        return document.getElementById('artist-songs-container-mobile');
+                    } else {
+                        return document.getElementById('songs-container-mobile');
+                    }
+                }
             } else {
-                return document.getElementById('songs-container-mobile');
+                // 修复桌面端逻辑
+                const artistView = document.getElementById('artist-view');
+                const chartsView = document.getElementById('charts-view');
+                
+                // 使用计算样式，不要依赖内联样式
+                const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
+                const chartsViewComputed = chartsView ? window.getComputedStyle(chartsView).display : 'none';
+                
+                if (artistViewComputed !== 'none') {
+                    return document.getElementById('artist-songs-container');
+                } else {
+                    return document.getElementById('songs-container');
+                }
             }
+            return null;
         }
-    } else {
-        // 修复桌面端逻辑
-        const artistView = document.getElementById('artist-view');
-        const chartsView = document.getElementById('charts-view');
-        
-        // 使用计算样式，不要依赖内联样式
-        const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
-        const chartsViewComputed = chartsView ? window.getComputedStyle(chartsView).display : 'none';
-        
-        console.log('桌面端容器选择调试:');
-        console.log('artistView计算显示:', artistViewComputed);
-        console.log('chartsView计算显示:', chartsViewComputed);
-        
-        if (artistViewComputed !== 'none') {
-            return document.getElementById('artist-songs-container');
-        } else {
-            return document.getElementById('songs-container');
-        }
-    }
-    return null;
-}
 
         // 修复：获取当前视图的分页容器
         function getCurrentPaginationContainer() {
@@ -1657,6 +1749,11 @@ function getCurrentSongsContainer() {
                 renderPlaylist();
                 updatePlaylistCount();
                 showMessage('已添加 "' + song.title + '" 到歌单');
+                
+                // 如果用户已登录，保存到云端
+                if (currentUser) {
+                    saveUserPlaylist();
+                }
             } else if (playlist.some(s => s.id == songId)) {
                 showMessage('"' + song.title + '" 已在歌单中');
             }
@@ -1696,6 +1793,11 @@ function getCurrentSongsContainer() {
                 renderPlaylist();
                 updatePlaylistCount();
                 showMessage('已从歌单移除 "' + songTitle + '"');
+                
+                // 如果用户已登录，保存到云端
+                if (currentUser) {
+                    saveUserPlaylist();
+                }
             }
         }
 
@@ -1720,6 +1822,11 @@ function getCurrentSongsContainer() {
                 renderPlaylist();
                 updatePlaylistCount();
                 showMessage('歌单已清空');
+                
+                // 如果用户已登录，保存到云端
+                if (currentUser) {
+                    saveUserPlaylist();
+                }
             }
         }
 
@@ -1733,7 +1840,17 @@ function getCurrentSongsContainer() {
                 document.getElementById('login-modal').style.display = 'flex';
                 return;
             }
-            showMessage('分享功能开发中...');
+            
+            // 创建分享链接
+            const playlistData = {
+                songs: playlist,
+                count: playlist.length,
+                sharedBy: currentUser.email || currentUser.displayName,
+                timestamp: new Date().toISOString()
+            };
+            
+            // 这里可以保存到数据库并生成分享链接
+            showMessage('分享功能开发中...后续会添加保存和分享链接功能');
         }
 
         // 搜索功能
@@ -1776,23 +1893,33 @@ function getCurrentSongsContainer() {
         function previewSong(previewUrl) {
             if (currentAudio) {
                 currentAudio.pause();
+                currentAudio.currentTime = 0;
             }
             currentAudio = new Audio(previewUrl);
             currentAudio.play().catch(error => {
                 console.error('播放失败:', error);
                 showMessage('播放失败，请重试');
             });
-            showMessage('开始试听...');
+            showMessage('开始试听... (30秒预览)');
+            
+            // 30秒后自动停止
+            setTimeout(() => {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+            }, 30000);
         }
 
         // 消息显示
         function showMessage(message) {
             const messageEl = document.createElement('div');
             messageEl.textContent = message;
-            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000;';
+            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000; font-size: 14px;';
             document.body.appendChild(messageEl);
             setTimeout(() => {
                 messageEl.style.opacity = '0';
+                messageEl.style.transition = 'opacity 0.3s';
                 setTimeout(() => {
                     if (messageEl.parentNode) {
                         messageEl.parentNode.removeChild(messageEl);
