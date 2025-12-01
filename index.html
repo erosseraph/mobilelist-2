@@ -1030,21 +1030,43 @@
         function checkRedirectResult() {
             if (!auth) return;
             
+            console.log('检查重定向登录结果...');
+            
             auth.getRedirectResult()
                 .then((result) => {
+                    console.log('getRedirectResult 返回:', result);
+                    
                     if (result.user) {
                         // 用户通过重定向登录成功
                         console.log('重定向登录成功:', result.user.email);
                         showMessage('✅ Google 登录成功！');
                         updateUserUI();
+                        
+                        // 清除URL中的认证参数（避免刷新问题）
+                        if (window.history.replaceState) {
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }
+                    } else {
+                        console.log('没有用户从重定向返回');
+                    }
+                    
+                    if (result.credential) {
+                        console.log('获取到凭证');
                     }
                 })
                 .catch((error) => {
-                    console.log('重定向登录处理:', error.code, error.message);
-                    // 常见的非错误情况，可以忽略
-                    if (error.code !== 'auth/redirect-cancelled-by-user' && 
-                        error.code !== 'auth/redirect-operation-pending') {
+                    console.log('重定向结果处理:', error.code, error.message);
+                    
+                    // 忽略常见的非错误情况
+                    const ignorableErrors = [
+                        'auth/redirect-cancelled-by-user',
+                        'auth/redirect-operation-pending',
+                        'auth/no-auth-event'
+                    ];
+                    
+                    if (!ignorableErrors.includes(error.code)) {
                         console.error('重定向登录错误:', error);
+                        showMessage('登录处理错误: ' + error.message);
                     }
                 });
         }
@@ -1149,7 +1171,7 @@
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         }
 
-        // 修复：完整的登录事件初始化函数
+        // 修复：完整的登录事件初始化函数 - 已修复Google登录问题
         function initLoginEvents() {
             const loginBtn = document.getElementById('login-btn');
             const closeLoginBtn = document.getElementById('close-login');
@@ -1210,6 +1232,18 @@
             if (googleLoginBtn) {
                 googleLoginBtn.addEventListener('click', function() {
                     const provider = new firebase.auth.GoogleAuthProvider();
+                    
+                    // 🔥 关键修复：添加email范围和prompt参数
+                    provider.addScope('email');
+                    provider.addScope('profile');
+                    provider.setCustomParameters({
+                        prompt: 'select_account'
+                    });
+                    
+                    console.log('Google登录配置:', {
+                        scopes: provider.scopes,
+                        customParameters: provider.customParameters
+                    });
                     
                     // 为移动端和桌面端提供更好的用户体验
                     if (isMobileDevice() || isMobileView) {
