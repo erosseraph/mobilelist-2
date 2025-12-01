@@ -77,6 +77,18 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // ============ 新增：排除 Firebase 相关请求 ============
+  // 不要让 Service Worker 缓存或处理任何 Firebase 相关资源
+  if (url.href.includes('gstatic.com/firebase') || 
+      url.href.includes('firebase.googleapis.com') ||
+      url.href.includes('__/firebase') ||
+      url.href.includes('firebase')) {
+    // 直接通过网络请求，不经过缓存
+    event.respondWith(fetch(request));
+    return;
+  }
+  // ============ 新增结束 ============
+  
   // 跳过非GET请求
   if (request.method !== 'GET') {
     return;
