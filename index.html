@@ -683,7 +683,7 @@
             </div>
             <div class="login-methods">
                 <button class="login-method-btn" id="email-login-btn">📧 邮箱登录/注册</button>
-                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（页面跳转）</button>
+                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（可能需跳转页面）</button>
             </div>
             <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">
                 <p>Google登录将跳转到Google授权页面</p>
@@ -951,7 +951,8 @@
             setupEventListeners();
             loadChart('chinese-pop');
             
-            // 检查是否从重定向返回
+            // 🔧 修复：延长等待时间，确保 Firebase 完全初始化
+            // 从 1000ms 改为 3000ms
             setTimeout(checkRedirectResult, 3000);
         });
 
@@ -1018,10 +1019,33 @@
             if (user) {
                 currentUser = user;
                 console.log('用户已登录:', user.email);
+                
+                // 🔧 新增：将用户信息存入 localStorage 作为备份
+                try {
+                    localStorage.setItem('firebase_user_backup', JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || user.email.split('@')[0],
+                        timestamp: Date.now(),
+                        provider: user.providerData[0]?.providerId || 'unknown'
+                    }));
+                    console.log('用户信息已备份到 localStorage');
+                } catch (e) {
+                    console.warn('无法备份用户信息到 localStorage:', e);
+                }
+                
                 updateUserUI();
             } else {
                 currentUser = null;
                 console.log('用户已登出');
+                
+                // 🔧 新增：清除备份（可选）
+                try {
+                    localStorage.removeItem('firebase_user_backup');
+                } catch (e) {
+                    // 忽略错误
+                }
+                
                 updateUserUI();
             }
         }
@@ -2010,6 +2034,87 @@
                 }, 300);
             }, 3000);
         }
+
+        // 🔧 新增：页面从后台恢复时重新检查认证状态
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('页面恢复可见，重新检查认证状态');
+                
+                // 检查 localStorage 中的备份
+                try {
+                    const backup = localStorage.getItem('firebase_user_backup');
+                    if (backup) {
+                        const userData = JSON.parse(backup);
+                        console.log('找到本地用户备份:', userData.email);
+                        
+                        // 如果当前没有用户但本地有备份，尝试恢复
+                        if (!currentUser && auth) {
+                            console.log('尝试恢复用户会话...');
+                            // 触发 Firebase 重新检查状态
+                            setTimeout(() => {
+                                auth.currentUser?.reload().catch(() => {});
+                            }, 500);
+                        }
+                    }
+                } catch (e) {
+                    // 忽略错误
+                }
+            }
+        });
+
+        // 🔧 新增：页面加载时尝试从备份恢复UI
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                try {
+                    const backup = localStorage.getItem('firebase_user_backup');
+                    if (backup && !currentUser) {
+                        const userData = JSON.parse(backup);
+                        console.log('页面加载完成，找到本地用户备份:', userData.email);
+                        // 显示备份的用户信息（即使 Firebase 尚未恢复）
+                        // 这可以提供更好的用户体验
+                        const userInfo = document.getElementById('user-info');
+                        const loginBtn = document.getElementById('login-btn');
+                        const userAvatar = document.getElementById('user-avatar');
+                        const userEmail = document.getElementById('user-email');
+                        
+                        if (userInfo && loginBtn && userAvatar && userEmail) {
+                            userInfo.style.display = 'flex';
+                            loginBtn.style.display = 'none';
+                            userAvatar.textContent = userData.displayName?.charAt(0)?.toUpperCase() || 'U';
+                            userEmail.textContent = userData.displayName || userData.email;
+                            
+                            // 显示临时用户信息，直到 Firebase 真正恢复
+                            setTimeout(() => {
+                                if (!currentUser) {
+                                    console.log('Firebase 尚未恢复，显示临时用户界面');
+                                }
+                            }, 2000);
+                        }
+                    }
+                } catch (e) {
+                    // 忽略错误
+                }
+            }, 1000);
+        });
+
+        // 🔧 新增：处理页面卸载前备份用户状态
+        window.addEventListener('beforeunload', function() {
+            if (currentUser) {
+                console.log('页面卸载前备份用户状态');
+                try {
+                    const backup = {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        displayName: currentUser.displayName || currentUser.email.split('@')[0],
+                        timestamp: Date.now(),
+                        isBackup: true
+                    };
+                    localStorage.setItem('firebase_user_last_backup', JSON.stringify(backup));
+                } catch (e) {
+                    // 忽略错误
+                }
+            }
+        });
     </script>
 </body>
 </html>
