@@ -1023,8 +1023,8 @@
 
                 // 设置持久化，优先 LOCAL（保持登录状态）
                 try {
-                    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-                    console.log('Auth persistence set to LOCAL');
+                    await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+                    console.log('Auth persistence set to SESSION');
                 } catch (err) {
                     console.warn('设置持久化失败，继续使用默认。', err);
                 }
