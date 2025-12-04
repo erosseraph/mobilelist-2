@@ -1,4 +1,4 @@
-// firebase-config.js - 更新版本
+// firebase-config.js - 只为主应用服务
 const firebaseConfig = {
     apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
     authDomain: "karaoke-customizer.firebaseapp.com",
@@ -9,8 +9,13 @@ const firebaseConfig = {
     measurementId: "G-D791D33Y6R"
 };
 
-// 导出配置给主应用
-window.FIREBASE_CONFIG = firebaseConfig;
+// 只为主应用导出
+if (typeof window !== 'undefined') {
+    window.FIREBASE_CONFIG = firebaseConfig;
+    console.log("✅ Firebase 配置已为主应用加载");
+}
 
-// 管理员密码配置
-window.ADMIN_PASSWORD = window.ADMIN_PASSWORD || "82030901";
+// 如果有模块导出需求
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { firebaseConfig };
+}
