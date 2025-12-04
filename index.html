@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>定制你的专属歌厅 v2.1.3</title>
+    <title>定制你的专属歌厅 v2.0.0</title>
     
-    <!-- Favicon -->
-    <link rel="icon" href="/favicon.ico">
-    
+    <!-- PWA 配置 -->
     <meta name="theme-color" content="#1a2a6c">
     <meta name="description" content="专业歌厅定制服务，打造您的专属音乐空间">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="歌厅定制">
 
-    <!-- Firebase SDK - 升级到最新兼容版本 -->
-    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-analytics-compat.js"></script>
+    <!-- 添加SheetJS库用于Excel导出 -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-analytics-compat.js"></script>
     
     <style>
         * {
@@ -31,7 +34,7 @@
             background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
             color: white;
             min-height: 100vh;
-            padding-bottom: 20px;
+            padding-bottom: 80px;
         }
         
         .container {
@@ -40,6 +43,7 @@
             padding: 0 15px;
         }
         
+        /* 导航栏样式 */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -74,6 +78,7 @@
         
         .nav-btn:hover, .nav-btn.active {
             background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
         }
         
         .user-section {
@@ -103,6 +108,7 @@
             background: rgba(255, 255, 255, 0.1);
             padding: 8px 15px;
             border-radius: 25px;
+            backdrop-filter: blur(10px);
         }
         
         .user-avatar {
@@ -125,282 +131,13 @@
             cursor: pointer;
             font-size: 0.8rem;
         }
-
-        /* 帮助系统样式 */
-        .help-system {
-            position: relative;
-        }
         
-        .help-tooltip {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            max-width: 300px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none;
-        }
-        
-        .help-tooltip::after {
-            content: '';
-            position: absolute;
-            top: -6px;
-            left: 20px;
-            border-width: 0 6px 6px 6px;
-            border-style: solid;
-            border-color: transparent transparent rgba(0,0,0,0.85) transparent;
-        }
-        
-        .help-card {
-            background: linear-gradient(135deg, rgba(26, 42, 108, 0.95), rgba(178, 31, 31, 0.95));
-            border-radius: 15px;
-            padding: 25px;
-            margin: 20px 0;
-            display: none;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .help-card.show {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-        
-        .help-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .help-sections {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        
-        .help-section {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-        }
-        
-        .help-section h4 {
-            color: #fdbb2d;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-        
-        .help-section ul {
-            list-style: none;
-            padding-left: 15px;
-        }
-        
-        .help-section li {
-            margin-bottom: 8px;
-            position: relative;
-            padding-left: 15px;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        
-        .help-section li::before {
-            content: '•';
-            position: absolute;
-            left: 0;
-            color: #fdbb2d;
-        }
-        
-        .close-help {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* 管理面板样式 */
-        #admin-panel {
-            display: none; /* 默认隐藏 */
-            background: linear-gradient(135deg, rgba(26, 42, 108, 0.95), rgba(178, 31, 31, 0.95));
-            border-radius: 15px;
-            padding: 25px;
-            margin: 20px 0;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-            border: 2px solid #fdbb2d;
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .admin-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #fdbb2d;
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .admin-actions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .admin-btn {
-            background: rgba(253, 187, 45, 0.2);
-            border: 1px solid rgba(253, 187, 45, 0.3);
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-        
-        .admin-btn:hover {
-            background: rgba(253, 187, 45, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        /* 订单模态框样式 */
-        .order-modal {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
-        }
-        
-        .order-form {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .form-group label {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        
-        .form-group .required {
-            color: #ff6b6b;
-        }
-        
-        .order-input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        
-        .order-input:focus {
-            outline: none;
-            border-color: #fdbb2d;
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .order-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .form-hint {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            margin-top: 3px;
-        }
-        
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .preview-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 10px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
-        
-        .preview-song {
-            padding: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.9rem;
-        }
-        
-        .preview-song:last-child {
-            border-bottom: none;
-        }
-        
-        /* 基础提示样式 */
-        .basic-help {
-            background: rgba(253, 187, 45, 0.1);
-            border-left: 4px solid #fdbb2d;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.9rem;
-        }
-        
-        .basic-help i {
-            color: #fdbb2d;
-            margin-right: 8px;
-        }
-        
+        /* 页面容器 */
         .page-container {
             min-height: 600px;
         }
         
+        /* 点歌系统页面 */
         #karaoke-page {
             display: flex;
             gap: 20px;
@@ -411,6 +148,7 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             padding: 20px;
+            backdrop-filter: blur(10px);
         }
         
         .playlist-section {
@@ -418,56 +156,12 @@
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             padding: 20px;
-            max-height: 700px;
+            backdrop-filter: blur(10px);
+            max-height: 600px;
             overflow-y: auto;
         }
         
-        /* 新增：正在播放的歌曲样式 */
-        .song.playing {
-            background: rgba(253, 187, 45, 0.2) !important;
-            border-left: 3px solid #fdbb2d;
-        }
-        
-        /* 新增：播放按钮状态样式 */
-        .preview-btn.playing {
-            background: rgba(255, 59, 48, 0.3);
-        }
-        
-        /* 移动端标签页布局 */
-        .mobile-tabs {
-            display: none;
-        }
-        
-        .mobile-tab-header {
-            display: flex;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-        
-        .mobile-tab {
-            flex: 1;
-            text-align: center;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .mobile-tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            border-bottom-color: #fdbb2d;
-        }
-        
-        .mobile-tab-content {
-            display: none;
-        }
-        
-        .mobile-tab-content.active {
-            display: block;
-        }
-        
+        /* 排行榜样式 */
         .charts-container {
             display: flex;
             gap: 10px;
@@ -481,12 +175,15 @@
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.3s;
+            border: 1px solid transparent;
         }
         
         .chart-category:hover, .chart-category.active {
             background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
         }
         
+        /* 搜索框样式 */
         .search-container {
             display: flex;
             gap: 10px;
@@ -501,6 +198,7 @@
             background: rgba(255, 255, 255, 0.1);
             color: white;
             font-size: 1rem;
+            backdrop-filter: blur(10px);
         }
         
         .search-input::placeholder {
@@ -514,10 +212,16 @@
             padding: 12px 20px;
             border-radius: 25px;
             cursor: pointer;
+            transition: all 0.3s;
         }
         
+        .search-btn:hover, .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 歌曲列表样式 */
         .songs-container {
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -535,6 +239,7 @@
         
         .song:hover {
             background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
         }
         
         .song-info {
@@ -564,74 +269,14 @@
             border-radius: 15px;
             cursor: pointer;
             font-size: 0.8rem;
-            min-width: 36px;
             transition: all 0.3s;
         }
         
-        .add-btn:hover {
-            background: rgba(76, 175, 80, 0.3);
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 20px;
-            padding: 15px;
-        }
-        
-        .load-more-btn {
+        .preview-btn:hover, .add-btn:hover {
             background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 25px;
-            cursor: pointer;
         }
         
-        .load-more-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .page-info {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .artist-search-view {
-            display: none;
-        }
-        
-        .artist-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .back-to-charts {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .artist-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-        
-        .song-count {
-            font-size: 1rem;
-            opacity: 0.8;
-        }
-        
+        /* 歌单样式 */
         .playlist-header {
             display: flex;
             justify-content: space-between;
@@ -644,33 +289,23 @@
             font-weight: bold;
         }
         
-        /* 修改：分享歌单按钮改为提交歌单 */
-        .submit-btn {
-            background: linear-gradient(135deg, #fdbb2d, #fda932);
+        .share-btn {
+            background: rgba(255, 255, 255, 0.2);
             border: none;
-            color: #1a2a6c;
+            color: white;
             padding: 8px 16px;
             border-radius: 20px;
             cursor: pointer;
-            font-weight: 600;
             transition: all 0.3s;
         }
         
-        .submit-btn:hover {
-            background: linear-gradient(135deg, #fda932, #fdbb2d);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(253, 187, 45, 0.3);
-        }
-        
-        .submit-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+        .share-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
         
         .playlist-items {
             min-height: 200px;
-            max-height: 500px;
+            max-height: 400px;
             overflow-y: auto;
         }
         
@@ -682,6 +317,11 @@
             margin-bottom: 6px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .playlist-item:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
         
         .song-number {
@@ -702,6 +342,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .remove-btn:hover {
+            background: rgba(255, 59, 48, 0.5);
         }
         
         .empty-playlist {
@@ -710,6 +355,7 @@
             opacity: 0.7;
         }
         
+        /* 价格页面样式 */
         #pricing-page {
             display: none;
         }
@@ -726,6 +372,29 @@
             border-radius: 15px;
             padding: 25px;
             text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pricing-card.popular {
+            border: 2px solid #ffd700;
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ffd700;
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
         }
         
         .plan-name {
@@ -752,9 +421,16 @@
             padding: 12px 30px;
             border-radius: 25px;
             cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
             width: 100%;
         }
         
+        .select-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 配送信息样式 */
         .shipping-info {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -776,6 +452,121 @@
             border-radius: 10px;
         }
         
+        .shipping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .shipping-region {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .shipping-price {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .shipping-desc {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .shipping-note {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-style: italic;
+            margin-top: 15px;
+        }
+        
+        /* 订单管理页面样式 */
+        #orders-page {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .orders-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .orders-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .export-btn {
+            background: rgba(46, 204, 113, 0.3);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .export-btn:hover {
+            background: rgba(46, 204, 113, 0.5);
+        }
+        
+        .orders-table-container {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .orders-table th {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .orders-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .orders-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .status-pending {
+            color: #f1c40f;
+            font-weight: bold;
+        }
+        
+        .status-paid {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .status-cancelled {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        /* 模态框样式 */
         .modal {
             display: none;
             position: fixed;
@@ -794,7 +585,10 @@
             border-radius: 15px;
             padding: 30px;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-header {
@@ -832,6 +626,56 @@
             border-radius: 10px;
             cursor: pointer;
             font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .login-method-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .form-submit-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .form-submit-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 工具类 */
+        .hidden {
+            display: none !important;
         }
         
         .loading {
@@ -846,158 +690,24 @@
             opacity: 0.8;
             color: #ff6b6b;
         }
-
-        /* 移动端响应式设计 - 修复版 */
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 10px;
-            }
-            
-            .navbar {
-                flex-direction: column;
-                gap: 15px;
-            }
-            
-            .logo {
-                font-size: 1.4rem;
-            }
-            
-            .nav-buttons {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .nav-btn {
-                padding: 8px 15px;
-                font-size: 0.9rem;
-            }
-            
-            .user-section {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            /* 移动端显示标签页，隐藏桌面布局 */
-            .mobile-tabs {
-                display: block;
-            }
-            
-            #karaoke-page {
-                flex-direction: column;
-            }
-            
-            /* 修复：只隐藏桌面端直接子元素的布局，不隐藏移动端标签页内的内容 */
-            #karaoke-page > .songs-section,
-            #karaoke-page > .playlist-section {
-                display: none;
-            }
-            
-            /* 修复：确保移动端标签页内的内容显示 */
-            .mobile-tabs .songs-section,
-            .mobile-tabs .playlist-section {
-                display: block !important;
-            }
-            
-            .mobile-tab-content.active {
-                display: block;
-            }
-            
-            /* 移动端搜索框优化 */
-            .search-container {
-                flex-direction: column;
-            }
-            
-            .search-input {
-                margin-bottom: 10px;
-            }
-            
-            /* 移动端歌曲列表优化 */
-            .songs-container {
-                max-height: 400px;
-            }
-            
-            .song {
-                padding: 10px 12px;
-            }
-            
-            .song-title {
-                font-size: 0.9rem;
-            }
-            
-            .song-artist {
-                font-size: 0.8rem;
-            }
-            
-            /* 移动端分页优化 */
-            .pagination {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .load-more-btn {
-                width: 100%;
-            }
-            
-            /* 移动端价格页面优化 */
-            .pricing-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-            
-            .shipping-options {
-                grid-template-columns: 1fr;
-            }
-            
-            /* 移动端帮助系统优化 */
-            .help-sections {
-                grid-template-columns: 1fr;
-            }
-            
-            .help-card {
-                padding: 20px;
-            }
-            
-            /* 移动端订单模态框优化 */
-            .order-modal .modal-content {
-                max-width: 95%;
-                padding: 20px;
-            }
-            
-            .admin-stats, .admin-actions {
-                grid-template-columns: 1fr;
-            }
+        
+        /* 管理面板链接 */
+        .admin-link {
+            display: none;
+            background: rgba(155, 89, 182, 0.3);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
         }
-
-        /* 小屏幕手机优化 */
-        @media (max-width: 480px) {
-            .charts-container {
-                gap: 5px;
-            }
-            
-            .chart-category {
-                padding: 8px 12px;
-                font-size: 0.8rem;
-            }
-            
-            .mobile-tab {
-                padding: 12px 8px;
-                font-size: 0.9rem;
-            }
-            
-            .playlist-header {
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
-            }
-            
-            .playlist-count {
-                font-size: 1rem;
-            }
-            
-            .basic-help {
-                padding: 10px 12px;
-                font-size: 0.85rem;
-            }
+        
+        .admin-link:hover {
+            background: rgba(155, 89, 182, 0.5);
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -1009,116 +719,46 @@
                 <h2 class="modal-title">登录 / 注册</h2>
                 <button class="close-btn" id="close-login">&times;</button>
             </div>
+            
             <div class="login-methods">
-                <button class="login-method-btn" id="email-login-btn">📧 邮箱登录/注册</button>
-                <button class="login-method-btn" id="google-login-btn">🔵 Google 登录（弹窗模式）</button>
-            </div>
-            <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7); text-align: center;">
-                <p>使用弹窗进行 Google 登录</p>
-                <p>如果弹窗被阻止，请允许弹窗或使用桌面浏览器</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- 确认提交模态框 -->
-    <div class="modal" id="confirm-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">确认提交歌单</h2>
-                <button class="close-btn" id="close-confirm">&times;</button>
-            </div>
-            <div id="confirm-content">
-                <p style="margin-bottom: 15px;">您即将提交以下歌单：</p>
-                <div class="preview-section" id="confirm-preview">
-                    <!-- 歌单预览内容将动态生成 -->
-                </div>
-                <p style="margin: 15px 0; font-size: 0.9rem; opacity: 0.8;">
-                    <i class="fas fa-info-circle"></i> 确认后将跳转到订单页面填写详细信息
-                </p>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="nav-btn" id="cancel-confirm" style="flex: 1;">取消</button>
-                <button class="submit-btn" id="proceed-order" style="flex: 1;">确认并继续</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 订单模态框 -->
-    <div class="modal order-modal" id="order-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">填写订单信息</h2>
-                <button class="close-btn" id="close-order">&times;</button>
-            </div>
-            <form id="order-form" class="order-form">
-                <div class="form-group">
-                    <label for="order-name">姓名 <span class="required">*</span></label>
-                    <input type="text" id="order-name" class="order-input" required placeholder="请输入您的姓名">
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-phone">电话 <span class="required">*</span></label>
-                    <input type="tel" id="order-phone" class="order-input" required placeholder="请输入联系电话">
-                    <div class="form-hint">用于配送确认和紧急联系</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-email">邮箱 <span class="required">*</span></label>
-                    <input type="email" id="order-email" class="order-input" required placeholder="请输入邮箱地址">
-                    <div class="form-hint">用于接收订单确认和下载链接</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-address">配送地址 <span class="required">*</span></label>
-                    <textarea id="order-address" class="order-input" rows="2" required placeholder="请输入完整的配送地址"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="order-notes">备注 <span class="form-hint">（可选）</span></label>
-                    <textarea id="order-notes" class="order-input form-textarea" rows="4" 
-                              placeholder="请在此备注特殊需求，例如：
-- 歌曲需要按歌手分文件夹存放
-- 需要特殊音质（320kbps MP3/无损）
-- 需要添加专辑封面
-- 其他特殊格式要求
-
-确认联络方式：
-邮箱：订单确认和下载链接将发送至上述邮箱
-电话：用于配送确认和紧急联系"></textarea>
-                    <div class="form-hint">请在此注明歌曲分文件夹的需求或其他特殊要求</div>
-                </div>
-                
-                <div class="preview-section">
-                    <p style="margin-bottom: 10px; font-weight: 500;">歌单预览（共 <span id="order-song-count">0</span> 首）：</p>
-                    <div id="order-preview">
-                        <!-- 订单歌单预览将动态生成 -->
-                    </div>
-                </div>
-                
-                <button type="submit" class="submit-btn" style="width: 100%; margin-top: 20px; padding: 15px;">
-                    提交订单
+                <button class="login-method-btn" id="email-login-btn">
+                    📧 邮箱登录/注册
                 </button>
-            </form>
+                <button class="login-method-btn" id="google-login-btn">
+                    🔵 Google 登录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 订单详情模态框 -->
+    <div class="modal" id="order-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">订单详情</h2>
+                <button class="close-btn" id="close-order-details">&times;</button>
+            </div>
+            
+            <div id="order-details-content">
+                <!-- 订单详情内容会动态加载到这里 -->
+            </div>
         </div>
     </div>
 
     <div class="container">
+        <!-- 导航栏 -->
         <nav class="navbar">
-            <div class="logo">🎤 定制你的专属歌厅 v2.1.3</div>
+            <div class="logo">
+                🎤 定制你的专属歌厅 v2.0.0
+            </div>
+            
             <div class="nav-buttons">
                 <button class="nav-btn active" id="karaoke-nav">🎵 点歌系统</button>
                 <button class="nav-btn" id="pricing-nav">💰 价格配套</button>
-                <!-- 帮助按钮 -->
-                <button class="nav-btn help-system" id="help-nav">
-                    <i class="fas fa-question-circle"></i> 帮助
-                    <div class="help-tooltip" id="help-tooltip">
-                        点击查看使用帮助和常见问题
-                    </div>
-                </button>
-                <div class="admin-section" id="admin-section">
-                    <a href="admin.html" class="admin-link">👑 管理面板</a>
-                </div>
+                <button class="nav-btn" id="orders-nav">📋 订单管理</button>
+                <a href="admin.html" class="admin-link">👑 管理面板</a>
             </div>
+            
             <div class="user-section">
                 <div class="user-info" id="user-info">
                     <div class="user-avatar" id="user-avatar">E</div>
@@ -1129,261 +769,104 @@
             </div>
         </nav>
         
-        <!-- 帮助卡片 -->
-        <div class="help-card" id="help-card">
-            <div class="help-header">
-                <h3 style="font-size: 1.3rem;"><i class="fas fa-question-circle"></i> 使用帮助</h3>
-                <button class="close-help" id="close-help">&times;</button>
-            </div>
-            <div class="help-sections">
-                <div class="help-section">
-                    <h4><i class="fas fa-music"></i> 基本操作</h4>
-                    <ul>
-                        <li>浏览不同分类的歌曲排行榜</li>
-                        <li>点击歌曲卡片添加到歌单</li>
-                        <li>点击歌手名称查看该歌手所有歌曲</li>
-                        <li>使用搜索框快速查找歌曲</li>
-                    </ul>
-                </div>
-                <div class="help-section">
-                    <h4><i class="fas fa-headphones"></i> 歌曲试听</h4>
-                    <ul>
-                        <li>点击▶️按钮试听30秒歌曲片段</li>
-                        <li>再次点击暂停播放</li>
-                        <li>播放不同歌曲时会自动切换</li>
-                        <li>当前播放的歌曲会高亮显示</li>
-                    </ul>
-                </div>
-                <div class="help-section">
-                    <h4><i class="fas fa-list"></i> 歌单管理</h4>
-                    <ul>
-                        <li>右侧显示您的歌单列表</li>
-                        <li>点击×按钮从歌单移除歌曲</li>
-                        <li>歌单会自动保存到云端</li>
-                        <li>登录后可在不同设备同步歌单</li>
-                    </ul>
-                </div>
-                <div class="help-section">
-                    <h4><i class="fas fa-shopping-cart"></i> 订单提交</h4>
-                    <ul>
-                        <li>添加歌曲后点击"提交歌单"</li>
-                        <li>需要先登录账号</li>
-                        <li>确认订单后填写配送信息</li>
-                        <li>备注中可注明特殊需求</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 管理面板 (默认隐藏) -->
-        <div id="admin-panel">
-            <div class="admin-header">
-                <h3><i class="fas fa-crown"></i> 管理面板</h3>
-                <div style="font-size: 0.9rem; opacity: 0.8;">仅限管理员访问</div>
-            </div>
-            <div class="admin-stats">
-                <div class="stat-card">
-                    <div class="stat-number" id="admin-total-orders">0</div>
-                    <div class="stat-label">总订单数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="admin-total-users">0</div>
-                    <div class="stat-label">注册用户</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="admin-total-songs">0</div>
-                    <div class="stat-label">歌曲总数</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="admin-active-orders">0</div>
-                    <div class="stat-label">处理中订单</div>
-                </div>
-            </div>
-            <div class="admin-actions">
-                <button class="admin-btn" onclick="showMessage('订单管理功能开发中')">
-                    <i class="fas fa-clipboard-list"></i> 订单管理
-                </button>
-                <button class="admin-btn" onclick="showMessage('用户管理功能开发中')">
-                    <i class="fas fa-users"></i> 用户管理
-                </button>
-                <button class="admin-btn" onclick="showMessage('歌曲库管理功能开发中')">
-                    <i class="fas fa-music"></i> 歌曲库管理
-                </button>
-                <button class="admin-btn" onclick="showMessage('系统设置功能开发中')">
-                    <i class="fas fa-cog"></i> 系统设置
-                </button>
-            </div>
-        </div>
-        
+        <!-- 页面容器 -->
         <div class="page-container">
+            <!-- 点歌系统页面 -->
             <div id="karaoke-page">
-                <!-- 桌面端布局 -->
                 <div class="songs-section">
-                    <div id="charts-view">
-                        <div class="charts-container">
-                            <div class="chart-category active" data-category="chinese-pop">华语流行</div>
-                            <div class="chart-category" data-category="western-pop">欧美流行</div>
-                            <div class="chart-category" data-category="chinese-artists">华语歌手</div>
-                            <div class="chart-category" data-category="western-artists">欧美歌手</div>
-                        </div>
-                        <div class="search-container">
-                            <input type="text" class="search-input" id="search-input" placeholder="搜索歌曲名称、歌手...">
-                            <button class="search-btn" id="search-btn">搜索</button>
-                            <button class="clear-btn" id="clear-btn">清空</button>
-                        </div>
-                        <div class="songs-container" id="songs-container">
-                            <div class="loading">正在加载歌曲...</div>
-                        </div>
-                        <div class="pagination" id="charts-pagination">
-                            <button class="load-more-btn" id="load-more-charts">加载更多</button>
-                            <div class="page-info" id="charts-page-info">第 1 页</div>
-                        </div>
+                    <div class="charts-container">
+                        <div class="chart-category active" data-category="chinese-pop">华语流行</div>
+                        <div class="chart-category" data-category="western-pop">欧美流行</div>
+                        <div class="chart-category" data-category="chinese-dj">中文DJ</div>
+                        <div class="chart-category" data-category="chinese-artists">华语歌手</div>
+                        <div class="chart-category" data-category="western-artists">欧美歌手</div>
                     </div>
-                    <div class="artist-search-view" id="artist-view">
-                        <div class="artist-header">
-                            <button class="back-to-charts" id="back-to-charts">← 返回排行榜</button>
-                            <div class="artist-name" id="artist-name">歌手名称</div>
-                            <div class="song-count" id="artist-song-count">0 首歌曲</div>
-                        </div>
-                        <div class="songs-container" id="artist-songs-container">
-                            <div class="loading">正在加载歌手歌曲...</div>
-                        </div>
-                        <div class="pagination" id="artist-pagination">
-                            <button class="load-more-btn" id="load-more-artist">加载更多</button>
-                            <div class="page-info" id="artist-page-info">第 1 页</div>
-                        </div>
+                    
+                    <div class="search-container">
+                        <input type="text" class="search-input" id="search-input" placeholder="搜索歌曲名称、歌手...">
+                        <button class="search-btn" id="search-btn">搜索</button>
+                        <button class="clear-btn" id="clear-btn">清空</button>
+                    </div>
+                    
+                    <div class="songs-container" id="songs-container">
+                        <div class="loading">正在加载歌曲...</div>
                     </div>
                 </div>
                 
                 <div class="playlist-section">
                     <div class="playlist-header">
                         <div class="playlist-count">我的歌单 <span id="playlist-count">(0)</span></div>
-                        <!-- 修改：分享歌单按钮改为提交歌单 -->
-                        <button class="submit-btn" id="submit-playlist-btn">提交歌单</button>
+                        <button class="share-btn" id="share-btn">分享歌单</button>
                     </div>
-                    <!-- 基础提示 -->
-                    <div class="basic-help">
-                        <i class="fas fa-lightbulb"></i> 提示：请先登录账号，添加歌曲后点击"提交歌单"按钮
-                    </div>
+                    
                     <div class="playlist-items" id="playlist-items">
                         <div class="empty-playlist">歌单为空，请从左侧添加歌曲</div>
                     </div>
                 </div>
-
-                <!-- 移动端标签页布局 -->
-                <div class="mobile-tabs">
-                    <div class="mobile-tab-header">
-                        <div class="mobile-tab active" data-tab="songs">🎵 歌曲浏览</div>
-                        <div class="mobile-tab" data-tab="playlist">📋 我的歌单 <span id="mobile-playlist-count">(0)</span></div>
-                    </div>
-                    <div class="mobile-tab-content active" id="mobile-songs-tab">
-                        <div class="songs-section">
-                            <div id="charts-view-mobile">
-                                <div class="charts-container">
-                                    <div class="chart-category active" data-category="chinese-pop">华语流行</div>
-                                    <div class="chart-category" data-category="western-pop">欧美流行</div>
-                                    <div class="chart-category" data-category="chinese-artists">华语歌手</div>
-                                    <div class="chart-category" data-category="western-artists">欧美歌手</div>
-                                </div>
-                                <div class="search-container">
-                                    <input type="text" class="search-input" id="search-input-mobile" placeholder="搜索歌曲名称、歌手...">
-                                    <button class="search-btn" id="search-btn-mobile">搜索</button>
-                                    <button class="clear-btn" id="clear-btn-mobile">清空</button>
-                                </div>
-                                <div class="songs-container" id="songs-container-mobile">
-                                    <div class="loading">正在加载歌曲...</div>
-                                </div>
-                                <div class="pagination" id="charts-pagination-mobile">
-                                    <button class="load-more-btn" id="load-more-charts-mobile">加载更多</button>
-                                    <div class="page-info" id="charts-page-info-mobile">第 1 页</div>
-                                </div>
-                            </div>
-                            <div class="artist-search-view" id="artist-view-mobile">
-                                <div class="artist-header">
-                                    <button class="back-to-charts" id="back-to-charts-mobile">← 返回排行榜</button>
-                                    <div class="artist-name" id="artist-name-mobile">歌手名称</div>
-                                    <div class="song-count" id="artist-song-count-mobile">0 首歌曲</div>
-                                </div>
-                                <div class="songs-container" id="artist-songs-container-mobile">
-                                    <div class="loading">正在加载歌手歌曲...</div>
-                                </div>
-                                <div class="pagination" id="artist-pagination-mobile">
-                                    <button class="load-more-btn" id="load-more-artist-mobile">加载更多</button>
-                                    <div class="page-info" id="artist-page-info-mobile">第 1 页</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mobile-tab-content" id="mobile-playlist-tab">
-                        <div class="playlist-section">
-                            <div class="playlist-header">
-                                <div class="playlist-count">我的歌单 <span id="mobile-playlist-count-display">(0)</span></div>
-                                <!-- 修改：移动端分享歌单按钮改为提交歌单 -->
-                                <button class="submit-btn" id="submit-playlist-btn-mobile">提交歌单</button>
-                            </div>
-                            <!-- 移动端基础提示 -->
-                            <div class="basic-help">
-                                <i class="fas fa-lightbulb"></i> 提示：请先登录账号，添加歌曲后点击"提交歌单"
-                            </div>
-                            <div class="playlist-items" id="playlist-items-mobile">
-                                <div class="empty-playlist">歌单为空，请从歌曲浏览添加歌曲</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
-            <div id="pricing-page" style="display: none;">
+            <!-- 价格配套页面 -->
+            <div id="pricing-page">
                 <div class="pricing-container">
                     <div class="pricing-card">
                         <div class="plan-name">基础版</div>
                         <div class="price">RM 29</div>
                         <div class="song-range">1 - 20 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="basic">选择此配套</button>
                     </div>
+                    
                     <div class="pricing-card">
                         <div class="plan-name">标准版</div>
                         <div class="price">RM 49</div>
                         <div class="song-range">21 - 50 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="standard">选择此配套</button>
                     </div>
-                    <div class="pricing-card">
+                    
+                    <div class="pricing-card popular">
+                        <div class="popular-badge">最受欢迎</div>
                         <div class="plan-name">进阶版</div>
                         <div class="price">RM 69</div>
                         <div class="song-range">51 - 100 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="premium">选择此配套</button>
                     </div>
+                    
                     <div class="pricing-card">
                         <div class="plan-name">豪华版</div>
                         <div class="price">RM 89</div>
                         <div class="song-range">101 - 200 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="deluxe">选择此配套</button>
                     </div>
+                    
                     <div class="pricing-card">
                         <div class="plan-name">专业版</div>
                         <div class="price">RM 109</div>
                         <div class="song-range">201 - 300 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="professional">选择此配套</button>
                     </div>
+                    
                     <div class="pricing-card">
                         <div class="plan-name">旗舰版</div>
                         <div class="price">RM 129</div>
                         <div class="song-range">301 - 400 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="flagship">选择此配套</button>
                     </div>
+                    
                     <div class="pricing-card">
                         <div class="plan-name">至尊版</div>
                         <div class="price">RM 159</div>
                         <div class="song-range">401 - 500 首歌曲</div>
-                        <button class="select-btn">选择此配套</button>
+                        <button class="select-btn" data-plan="ultimate">选择此配套</button>
                     </div>
+                    
                     <div class="pricing-card">
                         <div class="plan-name">自定义版</div>
                         <div class="price">RM 0.30/每首</div>
                         <div class="song-range">501+ 首歌曲</div>
-                        <button class="select-btn">联系定制</button>
+                        <button class="select-btn" data-plan="custom">联系定制</button>
                     </div>
                 </div>
+                
+                <!-- 配送信息 -->
                 <div class="shipping-info">
                     <h3 style="text-align: center; margin: 30px 0 20px 0; color: white;">配送信息</h3>
                     <div class="shipping-options">
@@ -1402,307 +885,169 @@
                             <div class="shipping-desc">预计 7-10 个工作日内送达</div>
                         </div>
                     </div>
-                    <div class="shipping-note">* 所有配套均包含完整的技术支持和售后服务</div>
+                    <div class="shipping-note">
+                        * 所有配套均包含完整的技术支持和售后服务
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 订单管理页面 -->
+            <div id="orders-page">
+                <div class="orders-header">
+                    <h2>📋 订单管理系统</h2>
+                    <div class="orders-controls">
+                        <button class="export-btn" id="export-excel-btn">
+                            📊 导出为Excel
+                        </button>
+                        <button class="nav-btn" id="refresh-orders-btn">
+                            🔄 刷新订单
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="orders-table-container">
+                    <table class="orders-table" id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>客户姓名</th>
+                                <th>套餐类型</th>
+                                <th>歌曲数量</th>
+                                <th>总金额</th>
+                                <th>配送地区</th>
+                                <th>订单状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <tr>
+                                <td colspan="9" style="text-align: center; padding: 40px;">
+                                    <div class="loading">正在加载订单数据...</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Font Awesome 图标库 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-
     <script>
-        // Firebase配置 - 使用固定配置
-        const firebaseConfig = {
-            apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
-            authDomain: "karaoke-customizer.firebaseapp.com",
-            projectId: "karaoke-customizer",
-            storageBucket: "karaoke-customizer.firebasestorage.app",
-            messagingSenderId: "593643512892",
-            appId: "1:593643512892:web:c21ec4ce7c2d286fed4f39",
-            measurementId: "G-D791D33Y6R"
-        };
+        // ==================== Firebase 配置 ====================
+        function getFirebaseConfig() {
+            return {
+                apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
+                authDomain: "karaoke-customizer.firebaseapp.com",
+                projectId: "karaoke-customizer",
+                storageBucket: "karaoke-customizer.firebasestorage.app",
+                messagingSenderId: "593643512892",
+                appId: "1:593643512892:web:c21ec4ce7c2d286fed4f39",
+                measurementId: "G-D791D33Y6R"
+            };
+        }
 
-        // 应用状态变量
+        // ==================== 应用状态变量 ====================
         let currentUser = null;
         let currentSongs = [];
         let playlist = [];
+        let orders = [];
         let firebaseApp, auth, firestore, analytics;
 
-        // 🔧 新增：全局音频管理器
-        let currentAudio = null;
-        let currentPlayingSongId = null;  // 记录当前播放的歌曲ID
-        let audioTimeoutId = null;        // 音频自动停止的计时器
-
-        // 歌手列表
-        const CHINESE_ARTISTS = [
-            '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '蔡依林', 
-            '陈奕迅', '李荣浩', '张惠妹', '王力宏', '孙燕姿',
-            '张杰', '王心凌', '杨丞琳', '吴青峰', '张韶涵',
-            '许嵩', '毛不易', '周深', '华晨宇', '刘德华',
-            '张学友', '王菲', '那英', '张信哲', '林忆莲'
-        ];
-
-        const WESTERN_ARTISTS = [
-            'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish',
-            'The Weeknd', 'Dua Lipa', 'Bruno Mars', 'Drake', 'Post Malone',
-            'Doja Cat', 'Olivia Rodrigo', 'Harry Styles', 'Coldplay', 'Maroon 5',
-            'Lady Gaga', 'Rihanna', 'Katy Perry', 'Adele', 'Beyonce',
-            'Shawn Mendes', 'Charlie Puth', 'Sia', 'Eminem', 'Imagine Dragons'
-        ];
-
-        // 分页状态
-        let currentChartPage = 1;
-        let currentArtistPage = 1;
-        let currentArtist = '';
-        const SONGS_PER_PAGE = 50;
-        let isMobileView = window.innerWidth <= 768;
-
-        // 页面初始化
+        // ==================== 页面初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('初始化应用 v2.1.3...');
-            initializeViewport();
+            console.log('🚀 初始化应用...');
+            
+            // 初始化Firebase
             initializeFirebase();
+            
+            // 初始化页面导航
             initPageNavigation();
+            
+            // 初始化事件监听
             setupEventListeners();
+            
+            // 加载默认排行榜
             loadChart('chinese-pop');
-            
-            // 检查是否从重定向返回
-            setTimeout(checkRedirectResult, 3000);
-            
-            // 初始化帮助系统
-            initHelpSystem();
         });
 
-        // 初始化帮助系统
-        function initHelpSystem() {
-            const helpNav = document.getElementById('help-nav');
-            const helpTooltip = document.getElementById('help-tooltip');
-            const closeHelp = document.getElementById('close-help');
-            const helpCard = document.getElementById('help-card');
-            
-            if (helpNav) {
-                helpNav.addEventListener('mouseenter', function() {
-                    helpTooltip.style.display = 'block';
-                });
-                
-                helpNav.addEventListener('mouseleave', function() {
-                    helpTooltip.style.display = 'none';
-                });
-                
-                helpNav.addEventListener('click', function() {
-                    helpCard.classList.toggle('show');
-                });
-            }
-            
-            if (closeHelp) {
-                closeHelp.addEventListener('click', function() {
-                    helpCard.classList.remove('show');
-                });
-            }
-        }
-
-        // 修复：增强视口初始化
-        function initializeViewport() {
-            isMobileView = window.innerWidth <= 768;
-            console.log('当前视图:', isMobileView ? '移动端' : '桌面端');
-            
-            // 确保页面正确显示
-            if (isMobileView) {
-                // 移动端：显示点歌系统页面和移动标签页
-                document.getElementById('karaoke-page').style.display = 'block';
-                document.getElementById('pricing-page').style.display = 'none';
-                
-                // 确保移动端标签页正确初始化
-                switchMobileTab('songs');
-                
-                // 隐藏桌面布局，显示移动端布局
-                document.querySelector('.mobile-tabs').style.display = 'block';
-                document.querySelector('.songs-section').style.display = 'none';
-                document.querySelector('.playlist-section').style.display = 'none';
-            } else {
-                // 桌面端：显示点歌系统页面和桌面布局
-                document.getElementById('karaoke-page').style.display = 'flex';
-                document.getElementById('pricing-page').style.display = 'none';
-                
-                // 显示桌面布局，隐藏移动端布局
-                document.querySelector('.mobile-tabs').style.display = 'none';
-                document.querySelector('.songs-section').style.display = 'block';
-                document.querySelector('.playlist-section').style.display = 'block';
-            }
-            
-            // 监听窗口大小变化
-            window.addEventListener('resize', function() {
-                const newIsMobile = window.innerWidth <= 768;
-                if (newIsMobile !== isMobileView) {
-                    isMobileView = newIsMobile;
-                    console.log('视图切换:', isMobileView ? '移动端' : '桌面端');
-                    // 重新初始化页面显示
-                    showPage('karaoke');
-                    initializeViewport();
-                }
-            });
-        }
-
-        // Firebase初始化
+        // ==================== Firebase 初始化 ====================
         function initializeFirebase() {
             try {
+                const firebaseConfig = getFirebaseConfig();
+                console.log('🔧 Firebase 配置:', firebaseConfig);
+                
                 firebaseApp = firebase.initializeApp(firebaseConfig);
                 auth = firebaseApp.auth();
                 firestore = firebaseApp.firestore();
                 analytics = firebaseApp.analytics();
-                console.log('Firebase初始化成功');
                 
-                // 设置持久化为 LOCAL
-                auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-                    .then(() => {
-                        console.log('Firebase 持久化设置为 LOCAL');
-                        auth.onAuthStateChanged(handleAuthStateChange);
-                    })
-                    .catch(error => {
-                        console.error('设置持久化失败:', error);
-                        auth.onAuthStateChanged(handleAuthStateChange);
-                    });
-                    
+                console.log('✅ Firebase 初始化成功');
+                
+                // 设置认证状态监听
+                auth.onAuthStateChanged(handleAuthStateChange);
+                
             } catch (error) {
-                console.error('Firebase初始化失败:', error);
-                showMessage('Firebase初始化失败，请刷新页面重试');
+                console.error('❌ Firebase 初始化失败:', error);
             }
         }
 
         function handleAuthStateChange(user) {
             if (user) {
+                console.log('✅ 用户已登录:', user.email);
                 currentUser = user;
-                console.log('用户已登录:', user.email);
-                
-                // 将用户信息存入 localStorage 作为备份
-                try {
-                    localStorage.setItem('firebase_user_backup', JSON.stringify({
-                        uid: user.uid,
-                        email: user.email,
-                        displayName: user.displayName || user.email.split('@')[0],
-                        timestamp: Date.now(),
-                        provider: user.providerData[0]?.providerId || 'unknown'
-                    }));
-                    console.log('用户信息已备份到 localStorage');
-                } catch (e) {
-                    console.warn('无法备份用户信息到 localStorage:', e);
-                }
-                
                 updateUserUI();
-                // 检查是否为管理员
-                checkAdminAccess();
+                
+                // 如果是管理员，显示管理面板链接
+                checkAdminStatus(user);
             } else {
+                console.log('❌ 用户已退出');
                 currentUser = null;
-                console.log('用户已登出');
-                
-                // 清除备份
-                try {
-                    localStorage.removeItem('firebase_user_backup');
-                } catch (e) {
-                    // 忽略错误
-                }
-                
                 updateUserUI();
-                // 隐藏管理面板
-                document.getElementById('admin-panel').style.display = 'none';
+                document.querySelector('.admin-link').style.display = 'none';
             }
         }
 
-        // 检查重定向登录结果
-        function checkRedirectResult() {
-            if (!auth) {
-                console.log('checkRedirectResult: auth 未初始化');
-                return;
-            }
-            
-            console.log('检查重定向登录结果...');
-            
-            auth.getRedirectResult()
-                .then((result) => {
-                    console.log('getRedirectResult 返回:', result);
-                    
-                    if (result.user) {
-                        // 用户通过重定向登录成功
-                        console.log('重定向登录成功:', result.user.email);
-                        showMessage('✅ Google 登录成功！');
-                        updateUserUI();
-                        
-                        // 清除URL中的认证参数（避免刷新问题）
-                        if (window.history.replaceState) {
-                            window.history.replaceState({}, document.title, window.location.pathname);
-                        }
-                    } else {
-                        console.log('没有用户从重定向返回');
-                    }
-                    
-                    if (result.credential) {
-                        console.log('获取到凭证');
-                    }
-                })
-                .catch((error) => {
-                    console.log('重定向结果处理:', error.code, error.message);
-                    
-                    // 忽略常见的非错误情况
-                    const ignorableErrors = [
-                        'auth/redirect-cancelled-by-user',
-                        'auth/redirect-operation-pending',
-                        'auth/no-auth-event'
-                    ];
-                    
-                    if (!ignorableErrors.includes(error.code)) {
-                        console.error('重定向登录错误:', error);
-                        showMessage('登录处理错误: ' + error.message);
-                    }
-                });
-        }
-
-        // 检查管理员权限
-        function checkAdminAccess() {
-            if (currentUser && currentUser.email === 'erosseraph@gmail.com') {
-                // 显示密码输入提示
-                const password = prompt('请输入管理员密码:');
-                if (password === '82030901') {
-                    document.getElementById('admin-panel').style.display = 'block';
-                    showMessage('管理员权限已激活', 'success');
-                }
-            }
-        }
-
-        // 页面导航
+        // ==================== 页面导航功能 ====================
         function initPageNavigation() {
-            document.getElementById('karaoke-nav').addEventListener('click', function() {
+            const karaokeNav = document.getElementById('karaoke-nav');
+            const pricingNav = document.getElementById('pricing-nav');
+            const ordersNav = document.getElementById('orders-nav');
+            
+            karaokeNav.addEventListener('click', function() {
                 showPage('karaoke');
                 setActiveNav(this);
             });
-            document.getElementById('pricing-nav').addEventListener('click', function() {
+            
+            pricingNav.addEventListener('click', function() {
                 showPage('pricing');
                 setActiveNav(this);
+            });
+            
+            ordersNav.addEventListener('click', function() {
+                showPage('orders');
+                setActiveNav(this);
+                loadOrders();
             });
         }
         
         function showPage(page) {
+            const karaokePage = document.getElementById('karaoke-page');
+            const pricingPage = document.getElementById('pricing-page');
+            const ordersPage = document.getElementById('orders-page');
+            
             // 隐藏所有页面
-            document.getElementById('karaoke-page').style.display = 'none';
-            document.getElementById('pricing-page').style.display = 'none';
+            karaokePage.style.display = 'none';
+            pricingPage.style.display = 'none';
+            ordersPage.style.display = 'none';
             
             // 显示目标页面
             if (page === 'karaoke') {
-                if (isMobileView) {
-                    document.getElementById('karaoke-page').style.display = 'block';
-                    // 确保移动端正确显示
-                    document.querySelector('.mobile-tabs').style.display = 'block';
-                    document.querySelector('.songs-section').style.display = 'none';
-                    document.querySelector('.playlist-section').style.display = 'none';
-                } else {
-                    document.getElementById('karaoke-page').style.display = 'flex';
-                    // 确保桌面端正确显示
-                    document.querySelector('.mobile-tabs').style.display = 'none';
-                    document.querySelector('.songs-section').style.display = 'block';
-                    document.querySelector('.playlist-section').style.display = 'block';
-                }
+                karaokePage.style.display = 'flex';
             } else if (page === 'pricing') {
-                document.getElementById('pricing-page').style.display = 'block';
+                pricingPage.style.display = 'block';
+            } else if (page === 'orders') {
+                ordersPage.style.display = 'block';
             }
         }
         
@@ -1713,378 +1058,190 @@
             activeButton.classList.add('active');
         }
 
-        // 事件监听器 - 修复版
+        // ==================== 事件监听器 ====================
         function setupEventListeners() {
-            // 排行榜事件
-            setupChartEvents('charts-view');
-            setupChartEvents('charts-view-mobile');
-            
-            // 搜索事件
-            setupSearchEvents('search-btn', 'search-input');
-            setupSearchEvents('search-btn-mobile', 'search-input-mobile');
-            
-            // 清空歌单
-            document.getElementById('clear-btn').addEventListener('click', clearPlaylist);
-            document.getElementById('clear-btn-mobile').addEventListener('click', clearPlaylist);
-            
-            // 提交歌单按钮事件
-            document.getElementById('submit-playlist-btn').addEventListener('click', submitPlaylistHandler);
-            document.getElementById('submit-playlist-btn-mobile').addEventListener('click', submitPlaylistHandler);
-            
-            // 修复：增强登录相关事件绑定
-            initLoginEvents();
-            
-            // 分页事件
-            document.getElementById('load-more-charts').addEventListener('click', loadMoreCharts);
-            document.getElementById('load-more-charts-mobile').addEventListener('click', loadMoreCharts);
-            document.getElementById('load-more-artist').addEventListener('click', loadMoreArtist);
-            document.getElementById('load-more-artist-mobile').addEventListener('click', loadMoreArtist);
-            document.getElementById('back-to-charts').addEventListener('click', showChartsView);
-            document.getElementById('back-to-charts-mobile').addEventListener('click', showChartsView);
-
-            // 移动端标签页
-            document.querySelectorAll('.mobile-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabName = this.dataset.tab;
-                    switchMobileTab(tabName);
-                });
-            });
-
-            // 价格配套按钮
-            document.querySelectorAll('.select-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const card = this.closest('.pricing-card');
-                    const planName = card.querySelector('.plan-name').textContent;
-                    const price = card.querySelector('.price').textContent;
-                    alert('您选择了 ' + planName + '\n价格: ' + price + '\n请先创建歌单然后提交订单。');
-                });
-            });
-            
-            // 确认提交模态框事件
-            document.getElementById('close-confirm').addEventListener('click', function() {
-                document.getElementById('confirm-modal').style.display = 'none';
-            });
-            
-            document.getElementById('cancel-confirm').addEventListener('click', function() {
-                document.getElementById('confirm-modal').style.display = 'none';
-            });
-            
-            document.getElementById('proceed-order').addEventListener('click', function() {
-                document.getElementById('confirm-modal').style.display = 'none';
-                showOrderModal();
-            });
-            
-            // 订单模态框事件
-            document.getElementById('close-order').addEventListener('click', function() {
-                document.getElementById('order-modal').style.display = 'none';
-            });
-            
-            document.getElementById('order-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                submitOrder();
-            });
-            
-            // 模态框背景点击关闭
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        modal.style.display = 'none';
-                    }
-                });
-            });
-        }
-
-        // 提交歌单处理函数
-        function submitPlaylistHandler() {
-            // 检查用户是否登录
-            if (!currentUser) {
-                showMessage('请先登录账号才能提交歌单');
-                document.getElementById('login-modal').style.display = 'flex';
-                return;
-            }
-            
-            // 检查歌单是否为空
-            if (playlist.length === 0) {
-                showMessage('歌单为空，请先添加歌曲');
-                return;
-            }
-            
-            // 显示确认模态框
-            showConfirmModal();
-        }
-
-        // 显示确认模态框
-        function showConfirmModal() {
-            const confirmModal = document.getElementById('confirm-modal');
-            const previewContainer = document.getElementById('confirm-preview');
-            
-            // 生成歌单预览
-            let previewHTML = '';
-            playlist.forEach((song, index) => {
-                previewHTML += `<div class="preview-song">${index + 1}. ${song.title} - ${song.artist}</div>`;
-            });
-            
-            previewContainer.innerHTML = previewHTML;
-            confirmModal.style.display = 'flex';
-        }
-
-        // 显示订单模态框
-        function showOrderModal() {
-            const orderModal = document.getElementById('order-modal');
-            const previewContainer = document.getElementById('order-preview');
-            const songCountElement = document.getElementById('order-song-count');
-            
-            // 自动填充邮箱
-            if (currentUser && currentUser.email) {
-                document.getElementById('order-email').value = currentUser.email;
-            }
-            
-            // 生成订单歌单预览
-            let previewHTML = '';
-            playlist.forEach((song, index) => {
-                previewHTML += `<div class="preview-song">${index + 1}. ${song.title} - ${song.artist}</div>`;
-            });
-            
-            previewContainer.innerHTML = previewHTML;
-            songCountElement.textContent = playlist.length;
-            
-            orderModal.style.display = 'flex';
-        }
-
-        // 提交订单
-        function submitOrder() {
-            // 获取表单数据
-            const orderData = {
-                name: document.getElementById('order-name').value.trim(),
-                phone: document.getElementById('order-phone').value.trim(),
-                email: document.getElementById('order-email').value.trim(),
-                address: document.getElementById('order-address').value.trim(),
-                notes: document.getElementById('order-notes').value.trim(),
-                playlist: playlist,
-                playlistCount: playlist.length,
-                userId: currentUser ? currentUser.uid : null,
-                userEmail: currentUser ? currentUser.email : null,
-                timestamp: new Date().toISOString(),
-                status: 'pending'
-            };
-            
-            // 简单验证
-            if (!orderData.name || !orderData.phone || !orderData.email || !orderData.address) {
-                showMessage('请填写所有必填字段');
-                return;
-            }
-            
-            // 模拟提交
-            showMessage('订单提交中...', 'info');
-            
-            setTimeout(() => {
-                // 关闭订单模态框
-                document.getElementById('order-modal').style.display = 'none';
-                
-                // 显示成功消息
-                showMessage('🎉 订单提交成功！我们会尽快处理您的订单。', 'success');
-                
-                // 清空歌单
-                playlist = [];
-                renderPlaylist();
-                updatePlaylistCount();
-                
-                // 如果用户已登录，保存到云端
-                if (currentUser) {
-                    saveUserPlaylist();
-                }
-                
-                // 重置表单
-                document.getElementById('order-form').reset();
-                
-            }, 1500);
-        }
-
-        // 修复：完整的登录事件初始化函数 - 已修改为弹窗模式
-        function initLoginEvents() {
-            const loginBtn = document.getElementById('login-btn');
-            const closeLoginBtn = document.getElementById('close-login');
-            const emailLoginBtn = document.getElementById('email-login-btn');
-            const googleLoginBtn = document.getElementById('google-login-btn');
-            const loginModal = document.getElementById('login-modal');
-            const logoutBtn = document.getElementById('logout-btn');
-            
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function() {
-                    loginModal.style.display = 'flex';
-                });
-            }
-            
-            if (closeLoginBtn) {
-                closeLoginBtn.addEventListener('click', function() {
-                    loginModal.style.display = 'none';
-                });
-            }
-            
-            if (emailLoginBtn) {
-                emailLoginBtn.addEventListener('click', function() {
-                    // 创建邮箱登录界面
-                    const email = prompt('请输入邮箱地址:');
-                    if (!email) return;
-                    
-                    const password = prompt('请输入密码:');
-                    if (!password) return;
-                    
-                    // 先尝试创建用户，如果失败则尝试登录
-                    auth.createUserWithEmailAndPassword(email, password)
-                        .then((userCredential) => {
-                            showMessage('🎉 注册成功！');
-                            loginModal.style.display = 'none';
-                        })
-                        .catch((error) => {
-                            if (error.code === 'auth/email-already-in-use') {
-                                // 如果邮箱已存在，尝试登录
-                                auth.signInWithEmailAndPassword(email, password)
-                                    .then(() => {
-                                        showMessage('✅ 登录成功！');
-                                        loginModal.style.display = 'none';
-                                    })
-                                    .catch(loginError => {
-                                        showMessage('❌ 登录失败: ' + loginError.message);
-                                    });
-                            } else if (error.code === 'auth/invalid-email') {
-                                showMessage('❌ 邮箱格式不正确');
-                            } else if (error.code === 'auth/weak-password') {
-                                showMessage('❌ 密码太弱，请使用至少6位字符');
-                            } else {
-                                showMessage('❌ 错误: ' + error.message);
-                            }
-                        });
-                });
-            }
-            
-            if (googleLoginBtn) {
-                googleLoginBtn.addEventListener('click', function() {
-                    const provider = new firebase.auth.GoogleAuthProvider();
-                    
-                    // 🔥 关键修复：使用弹窗模式
-                    provider.addScope('email');
-                    provider.addScope('profile');
-                    provider.setCustomParameters({
-                        prompt: 'select_account',
-                        display: 'popup',
-                        ux_mode: 'popup'
-                    });
-                    
-                    console.log('使用弹窗模式进行 Google 登录');
-                    
-                    // 尝试使用弹窗登录
-                    auth.signInWithPopup(provider)
-                        .then((result) => {
-                            console.log('✅ 弹窗登录成功:', result.user.email);
-                            showMessage('✅ Google 登录成功！');
-                            loginModal.style.display = 'none';
-                            
-                            // 弹窗登录成功，不需要处理重定向
-                            currentUser = result.user;
-                            updateUserUI();
-                        })
-                        .catch((error) => {
-                            console.error('弹窗登录失败:', error.code, error.message);
-                            
-                            // 处理常见的弹窗错误
-                            if (error.code === 'auth/popup-blocked') {
-                                showMessage('❌ 弹窗被浏览器阻止，请允许弹窗或尝试以下方法：\n1. 检查地址栏的弹窗阻止图标\n2. 允许该网站的弹窗\n3. 或使用桌面浏览器');
-                                
-                                // 提供重定向作为备选方案
-                                if (confirm('弹窗被阻止，是否使用页面跳转方式登录？')) {
-                                    console.log('切换到重定向模式...');
-                                    showMessage('正在跳转到Google登录页面...');
-                                    auth.signInWithRedirect(provider);
-                                }
-                            } else if (error.code === 'auth/popup-closed-by-user') {
-                                showMessage('❌ 登录弹窗被关闭，请重试');
-                            } else if (error.code === 'auth/cancelled-popup-request') {
-                                showMessage('❌ 登录请求被取消，请重试');
-                            } else if (error.code === 'auth/account-exists-with-different-credential') {
-                                showMessage('❌ 该邮箱已使用其他方式注册');
-                            } else {
-                                showMessage('❌ 登录失败: ' + error.message);
-                            }
-                        });
-                });
-            }
-            
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    if (confirm('确定要退出登录吗？')) {
-                        auth.signOut().then(() => {
-                            showMessage('已退出登录');
-                        }).catch((error) => {
-                            showMessage('退出失败: ' + error.message);
-                        });
-                    }
-                });
-            }
-            
-            // 点击模态框背景关闭
-            loginModal.addEventListener('click', function(e) {
-                if (e.target === loginModal) {
-                    loginModal.style.display = 'none';
-                }
-            });
-        }
-
-        function setupChartEvents(containerId) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.querySelectorAll('.chart-category').forEach(chart => {
+            // 排行榜点击事件
+            document.querySelectorAll('.chart-category').forEach(chart => {
                 chart.addEventListener('click', function() {
                     const category = this.dataset.category;
-                    currentChartPage = 1;
                     loadChart(category);
-                    container.querySelectorAll('.chart-category').forEach(c => {
+                    
+                    // 更新活跃状态
+                    document.querySelectorAll('.chart-category').forEach(c => {
                         c.classList.remove('active');
                     });
                     this.classList.add('active');
                 });
             });
+            
+            // 搜索功能
+            const searchBtn = document.getElementById('search-btn');
+            const searchInput = document.getElementById('search-input');
+            
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            
+            // 清空歌单
+            document.getElementById('clear-btn').addEventListener('click', clearPlaylist);
+            
+            // 分享歌单
+            document.getElementById('share-btn').addEventListener('click', sharePlaylist);
+            
+            // 登录模态框
+            document.getElementById('login-btn').addEventListener('click', function() {
+                document.getElementById('login-modal').style.display = 'flex';
+            });
+            
+            document.getElementById('close-login').addEventListener('click', function() {
+                document.getElementById('login-modal').style.display = 'none';
+            });
+            
+            document.getElementById('close-order-details').addEventListener('click', function() {
+                document.getElementById('order-details-modal').style.display = 'none';
+            });
+            
+            // 退出登录
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                if (auth) {
+                    auth.signOut();
+                }
+            });
+
+            // 价格配套按钮
+            document.querySelectorAll('.select-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const plan = this.dataset.plan;
+                    selectPricingPlan(plan);
+                });
+            });
+
+            // 登录方式按钮
+            document.getElementById('email-login-btn').addEventListener('click', function() {
+                showEmailLoginForm();
+            });
+
+            document.getElementById('google-login-btn').addEventListener('click', function() {
+                signInWithGoogle();
+            });
+
+            // 订单管理按钮
+            document.getElementById('refresh-orders-btn').addEventListener('click', function() {
+                loadOrders();
+            });
+
+            document.getElementById('export-excel-btn').addEventListener('click', function() {
+                exportOrdersToExcel();
+            });
         }
 
-        function setupSearchEvents(btnId, inputId) {
-            const searchBtn = document.getElementById(btnId);
-            const searchInput = document.getElementById(inputId);
-            if (searchBtn && searchInput) {
-                searchBtn.addEventListener('click', function() {
-                    performSearch(inputId);
-                });
-                searchInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        performSearch(inputId);
+        // ==================== 登录功能 ====================
+        function showEmailLoginForm() {
+            const loginModal = document.getElementById('login-modal');
+            loginModal.querySelector('.modal-content').innerHTML = `
+                <div class="modal-header">
+                    <h2 class="modal-title">邮箱登录/注册</h2>
+                    <button class="close-btn" id="close-login">&times;</button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">邮箱地址</label>
+                    <input type="email" class="form-input" id="login-email" placeholder="输入您的邮箱">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-input" id="login-password" placeholder="输入密码">
+                </div>
+                
+                <button class="form-submit-btn" id="submit-login">登录 / 注册</button>
+                
+                <div style="margin-top: 15px; text-align: center;">
+                    <button class="nav-btn" style="background: transparent; font-size: 0.9rem;" id="back-to-login-methods">
+                        ← 返回登录方式选择
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('close-login').addEventListener('click', function() {
+                loginModal.style.display = 'none';
+            });
+
+            document.getElementById('submit-login').addEventListener('click', function() {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                signInWithEmail(email, password);
+            });
+
+            document.getElementById('back-to-login-methods').addEventListener('click', function() {
+                showLoginMethods();
+            });
+        }
+
+        function showLoginMethods() {
+            const loginModal = document.getElementById('login-modal');
+            loginModal.querySelector('.modal-content').innerHTML = `
+                <div class="modal-header">
+                    <h2 class="modal-title">登录 / 注册</h2>
+                    <button class="close-btn" id="close-login">&times;</button>
+                </div>
+                
+                <div class="login-methods">
+                    <button class="login-method-btn" id="email-login-btn">
+                        📧 邮箱登录/注册
+                    </button>
+                    <button class="login-method-btn" id="google-login-btn">
+                        🔵 Google 登录
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('close-login').addEventListener('click', function() {
+                loginModal.style.display = 'none';
+            });
+
+            document.getElementById('email-login-btn').addEventListener('click', showEmailLoginForm);
+            document.getElementById('google-login-btn').addEventListener('click', signInWithGoogle);
+        }
+
+        async function signInWithEmail(email, password) {
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                console.log('✅ 邮箱登录成功:', userCredential.user.email);
+                showMessage('登录成功！');
+                document.getElementById('login-modal').style.display = 'none';
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    // 用户不存在，尝试注册
+                    try {
+                        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                        console.log('✅ 邮箱注册成功:', userCredential.user.email);
+                        showMessage('注册成功！');
+                        document.getElementById('login-modal').style.display = 'none';
+                    } catch (signUpError) {
+                        console.error('❌ 注册失败:', signUpError);
+                        showMessage(`注册失败: ${signUpError.message}`);
                     }
-                });
+                } else {
+                    console.error('❌ 登录失败:', error);
+                    showMessage(`登录失败: ${error.message}`);
+                }
             }
         }
 
-        // 修复：增强移动端标签页切换
-        function switchMobileTab(tabName) {
-            // 更新标签页状态
-            document.querySelectorAll('.mobile-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelector('.mobile-tab[data-tab="' + tabName + '"]').classList.add('active');
-            
-            // 更新内容显示
-            document.querySelectorAll('.mobile-tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            document.getElementById('mobile-' + tabName + '-tab').classList.add('active');
-            
-            // 根据标签页加载对应内容
-            if (tabName === 'songs') {
-                // 确保歌曲浏览视图正确显示
-                const activeCategory = document.querySelector('.chart-category.active');
-                if (activeCategory && currentSongs.length === 0) {
-                    loadChart(activeCategory.dataset.category);
-                }
-            } else if (tabName === 'playlist') {
-                // 确保歌单正确渲染
-                renderPlaylist();
+        async function signInWithGoogle() {
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const userCredential = await auth.signInWithPopup(provider);
+                console.log('✅ Google登录成功:', userCredential.user.email);
+                showMessage('Google登录成功！');
+                document.getElementById('login-modal').style.display = 'none';
+            } catch (error) {
+                console.error('❌ Google登录失败:', error);
+                showMessage(`Google登录失败: ${error.message}`);
             }
         }
 
@@ -2097,104 +1254,402 @@
             if (currentUser) {
                 userInfo.style.display = 'flex';
                 loginBtn.style.display = 'none';
+                
+                // 更新用户信息
                 const displayName = currentUser.displayName || currentUser.email.split('@')[0];
                 const initial = displayName.charAt(0).toUpperCase();
                 userAvatar.textContent = initial;
                 userEmail.textContent = displayName;
-                document.getElementById('admin-section').style.display = 'block';
                 
-                // 加载用户的歌单
-                loadUserPlaylist();
             } else {
                 userInfo.style.display = 'none';
                 loginBtn.style.display = 'block';
-                document.getElementById('admin-section').style.display = 'none';
             }
         }
-        
-        async function loadUserPlaylist() {
-            if (!currentUser) return;
-            
+
+        async function checkAdminStatus(user) {
             try {
-                const playlistRef = firestore.collection('playlists').doc(currentUser.uid);
-                const doc = await playlistRef.get();
-                
-                if (doc.exists) {
-                    const data = doc.data();
-                    playlist = data.songs || [];
-                    renderPlaylist();
-                    updatePlaylistCount();
+                const userDoc = await firestore.collection('users').doc(user.uid).get();
+                if (userDoc.exists && userDoc.data().isAdmin) {
+                    document.querySelector('.admin-link').style.display = 'block';
+                    console.log('👑 用户是管理员');
                 }
             } catch (error) {
-                console.error('加载用户歌单失败:', error);
+                console.error('检查管理员状态失败:', error);
             }
         }
-        
-        async function saveUserPlaylist() {
-            if (!currentUser) return;
-            
+
+        // ==================== 价格套餐选择 ====================
+        function selectPricingPlan(plan) {
+            if (playlist.length === 0) {
+                showMessage('请先添加歌曲到歌单');
+                showPage('karaoke');
+                setActiveNav(document.getElementById('karaoke-nav'));
+                return;
+            }
+
+            const planNames = {
+                'basic': '基础版',
+                'standard': '标准版',
+                'premium': '进阶版',
+                'deluxe': '豪华版',
+                'professional': '专业版',
+                'flagship': '旗舰版',
+                'ultimate': '至尊版',
+                'custom': '自定义版'
+            };
+
+            const planPrices = {
+                'basic': 29,
+                'standard': 49,
+                'premium': 69,
+                'deluxe': 89,
+                'professional': 109,
+                'flagship': 129,
+                'ultimate': 159,
+                'custom': playlist.length * 0.3
+            };
+
+            const planName = planNames[plan];
+            const price = plan === 'custom' ? 
+                `RM ${planPrices[plan].toFixed(2)}` : 
+                `RM ${planPrices[plan]}`;
+
+            if (!currentUser) {
+                showMessage('请先登录以提交订单');
+                document.getElementById('login-modal').style.display = 'flex';
+                return;
+            }
+
+            createOrder(planName, price);
+        }
+
+        // ==================== 订单管理功能 ====================
+        async function createOrder(planName, price) {
             try {
-                const playlistRef = firestore.collection('playlists').doc(currentUser.uid);
-                await playlistRef.set({
-                    songs: playlist,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    songCount: playlist.length
-                });
+                const orderData = {
+                    userId: currentUser.uid,
+                    userEmail: currentUser.email,
+                    userName: currentUser.displayName || currentUser.email.split('@')[0],
+                    plan: planName,
+                    price: price,
+                    songCount: playlist.length,
+                    songs: playlist.map(song => ({
+                        title: song.title,
+                        artist: song.artist,
+                        album: song.album
+                    })),
+                    shippingRegion: '西马', // 默认为西马
+                    shippingCost: 0, // 西马免费
+                    totalAmount: price.replace('RM ', ''),
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                const docRef = await firestore.collection('orders').add(orderData);
+                console.log('✅ 订单创建成功:', docRef.id);
+                
+                // 生成订单号
+                const orderId = `ORD-${Date.now()}-${docRef.id.substring(0, 4).toUpperCase()}`;
+                await docRef.update({ orderId: orderId });
+
+                showMessage(`订单提交成功！订单号: ${orderId}`);
+                
+                // 清空歌单
+                playlist = [];
+                renderPlaylist();
+                updatePlaylistCount();
+
             } catch (error) {
-                console.error('保存歌单失败:', error);
+                console.error('❌ 创建订单失败:', error);
+                showMessage(`创建订单失败: ${error.message}`);
             }
         }
 
-        // 视图切换
-        function showChartsView() {
-            if (isMobileView) {
-                document.getElementById('charts-view-mobile').style.display = 'block';
-                document.getElementById('artist-view-mobile').style.display = 'none';
-            } else {
-                document.getElementById('charts-view').style.display = 'block';
-                document.getElementById('artist-view').style.display = 'none';
+        async function loadOrders() {
+            const ordersTableBody = document.getElementById('orders-table-body');
+            ordersTableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 40px;">
+                        <div class="loading">正在加载订单数据...</div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                let query = firestore.collection('orders').orderBy('createdAt', 'desc');
+
+                // 如果用户不是管理员，只显示自己的订单
+                const userDoc = await firestore.collection('users').doc(currentUser.uid).get();
+                if (!userDoc.exists || !userDoc.data().isAdmin) {
+                    query = query.where('userId', '==', currentUser.uid);
+                }
+
+                const snapshot = await query.get();
+                orders = [];
+
+                snapshot.forEach(doc => {
+                    const orderData = doc.data();
+                    orders.push({
+                        id: doc.id,
+                        ...orderData,
+                        createdAt: orderData.createdAt ? 
+                            orderData.createdAt.toDate().toLocaleString('zh-CN') : '未知时间'
+                    });
+                });
+
+                renderOrdersTable();
+
+                if (orders.length === 0) {
+                    ordersTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px;">
+                                <div class="empty-playlist">暂无订单数据</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+
+            } catch (error) {
+                console.error('❌ 加载订单失败:', error);
+                ordersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            <div class="error">加载订单失败: ${error.message}</div>
+                        </td>
+                    </tr>
+                `;
             }
         }
 
-        function showArtistView(artistName) {
-            if (isMobileView) {
-                document.getElementById('charts-view-mobile').style.display = 'none';
-                document.getElementById('artist-view-mobile').style.display = 'block';
-                currentArtist = artistName;
-                currentArtistPage = 1;
-                document.getElementById('artist-name-mobile').textContent = artistName;
-                document.getElementById('artist-song-count-mobile').textContent = '加载中...';
-                loadArtistSongs(artistName, 1, true);
-            } else {
-                document.getElementById('charts-view').style.display = 'none';
-                document.getElementById('artist-view').style.display = 'block';
-                currentArtist = artistName;
-                currentArtistPage = 1;
-                document.getElementById('artist-name').textContent = artistName;
-                document.getElementById('artist-song-count').textContent = '加载中...';
-                loadArtistSongs(artistName, 1, false);
+        function renderOrdersTable() {
+            const ordersTableBody = document.getElementById('orders-table-body');
+            ordersTableBody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                
+                // 根据状态设置样式
+                let statusClass = '';
+                let statusText = '';
+                switch(order.status) {
+                    case 'pending':
+                        statusClass = 'status-pending';
+                        statusText = '待付款';
+                        break;
+                    case 'paid':
+                        statusClass = 'status-paid';
+                        statusText = '已付款';
+                        break;
+                    case 'shipped':
+                        statusClass = 'status-paid';
+                        statusText = '已发货';
+                        break;
+                    case 'completed':
+                        statusClass = 'status-paid';
+                        statusText = '已完成';
+                        break;
+                    case 'cancelled':
+                        statusClass = 'status-cancelled';
+                        statusText = '已取消';
+                        break;
+                    default:
+                        statusClass = 'status-pending';
+                        statusText = order.status;
+                }
+
+                row.innerHTML = `
+                    <td>${order.orderId || order.id}</td>
+                    <td>${order.userName || '未提供'}</td>
+                    <td>${order.plan}</td>
+                    <td>${order.songCount || 0}</td>
+                    <td>${order.totalAmount || order.price}</td>
+                    <td>${order.shippingRegion || '西马'}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>${order.createdAt}</td>
+                    <td>
+                        <button class="preview-btn" data-order-id="${order.id}" style="padding: 5px 10px;">
+                            查看详情
+                        </button>
+                    </td>
+                `;
+                
+                ordersTableBody.appendChild(row);
+            });
+
+            // 添加查看详情按钮事件
+            document.querySelectorAll('.preview-btn[data-order-id]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const orderId = this.dataset.orderId;
+                    showOrderDetails(orderId);
+                });
+            });
+        }
+
+        async function showOrderDetails(orderId) {
+            try {
+                const orderDoc = await firestore.collection('orders').doc(orderId).get();
+                if (!orderDoc.exists) {
+                    showMessage('订单不存在');
+                    return;
+                }
+
+                const orderData = orderDoc.data();
+                const modalContent = document.getElementById('order-details-content');
+                
+                modalContent.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">订单号</label>
+                        <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            ${orderData.orderId || orderId}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">客户信息</label>
+                        <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <div>姓名: ${orderData.userName || '未提供'}</div>
+                            <div>邮箱: ${orderData.userEmail}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">订单详情</label>
+                        <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <div>套餐: ${orderData.plan}</div>
+                            <div>歌曲数量: ${orderData.songCount || 0}</div>
+                            <div>价格: ${orderData.price}</div>
+                            <div>配送地区: ${orderData.shippingRegion || '西马'}</div>
+                            <div>配送费用: RM ${orderData.shippingCost || 0}</div>
+                            <div>总金额: ${orderData.totalAmount || orderData.price}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">歌曲列表 (${orderData.songCount || 0}首)</label>
+                        <div style="max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            ${orderData.songs ? orderData.songs.map((song, index) => `
+                                <div style="padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                    ${index + 1}. ${song.title} - ${song.artist}
+                                </div>
+                            `).join('') : '<div>无歌曲信息</div>'}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">订单状态</label>
+                        <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span id="order-status-text">${orderData.status || 'pending'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">订单时间</label>
+                        <div style="padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <div>创建时间: ${orderData.createdAt ? orderData.createdAt.toDate().toLocaleString('zh-CN') : '未知'}</div>
+                            <div>更新时间: ${orderData.updatedAt ? orderData.updatedAt.toDate().toLocaleString('zh-CN') : '未知'}</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('order-details-modal').style.display = 'flex';
+
+            } catch (error) {
+                console.error('❌ 加载订单详情失败:', error);
+                showMessage(`加载订单详情失败: ${error.message}`);
             }
         }
 
-        // 使用自己的API代理
-        async function searchMusic(term, limit = 50, offset = 0) {
+        // ==================== Excel导出功能 ====================
+        function exportOrdersToExcel() {
+            if (orders.length === 0) {
+                showMessage('暂无订单数据可导出');
+                return;
+            }
+
+            try {
+                // 准备数据
+                const worksheetData = orders.map(order => ({
+                    '订单号': order.orderId || order.id,
+                    '客户姓名': order.userName || '未提供',
+                    '客户邮箱': order.userEmail,
+                    '套餐类型': order.plan,
+                    '歌曲数量': order.songCount || 0,
+                    '套餐价格': order.price,
+                    '配送地区': order.shippingRegion || '西马',
+                    '配送费用': order.shippingCost || 0,
+                    '总金额': order.totalAmount || order.price,
+                    '订单状态': order.status,
+                    '创建时间': order.createdAt,
+                    '订单ID': order.id
+                }));
+
+                // 创建工作表
+                const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+                
+                // 创建工作簿
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "订单数据");
+                
+                // 生成Excel文件
+                const fileName = `订单数据_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(workbook, fileName);
+                
+                showMessage(`订单数据已导出为: ${fileName}`);
+                
+            } catch (error) {
+                console.error('❌ 导出Excel失败:', error);
+                showMessage(`导出Excel失败: ${error.message}`);
+            }
+        }
+
+        // ==================== 以下为原有功能，保持不变 ====================
+
+        function getSearchConfig(category) {
+            const configs = {
+                'chinese-pop': {
+                    terms: ['周杰伦', '林俊杰', '邓紫棋', '华语流行', '中文歌曲'],
+                    country: 'CN',
+                    description: '热门华语歌曲榜'
+                },
+                'western-pop': {
+                    terms: ['taylor swift', 'ed sheeran', 'ariana grande', 'pop music'],
+                    country: 'US',
+                    description: '欧美流行热歌'
+                },
+                'chinese-dj': {
+                    terms: ['中文DJ', '电子舞曲', 'remix', '电音'],
+                    country: 'CN',
+                    description: '热门电子舞曲'
+                },
+                'chinese-artists': {
+                    type: 'artists',
+                    artists: ['周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿']
+                },
+                'western-artists': {
+                    type: 'artists',
+                    artists: ['Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish', 'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars']
+                }
+            };
+            
+            return configs[category] || configs['chinese-pop'];
+        }
+
+        async function searchMusic(term, limit = 50) {
             try {
                 const encodedTerm = encodeURIComponent(term);
+                const url = `https://itunes.apple.com/search?term=${encodedTerm}&entity=musicTrack&limit=${limit}&country=CN&lang=zh_cn`;
                 
-                // 使用自己的代理API
-                const url = `/api/itunes-proxy?term=${encodedTerm}&limit=${limit}&offset=${offset}`;
-                
-                console.log('请求自己的API代理:', url);
+                console.log('🔍 搜索请求:', url);
                 
                 const response = await fetch(url);
-                
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('搜索结果:', data.resultCount, '条');
+                console.log('📊 搜索结果:', data.resultCount, '条');
                 
                 if (data.resultCount === 0) {
                     return [];
@@ -2221,544 +1676,150 @@
             }
         }
 
-        // 排行榜功能 - 修复：增强移动端支持
         async function loadChart(category) {
-            console.log('加载 ' + category + ' 排行榜 第 ' + currentChartPage + ' 页...');
+            console.log(`📊 加载 ${category} 排行榜...`);
             
-            // 修复：根据当前视图获取正确的容器
-            const songsContainer = getCurrentSongsContainer();
-            const pagination = getCurrentPaginationContainer();
-            
-            if (currentChartPage === 1) {
-                if (songsContainer) {
-                    songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
-                }
-                if (pagination) pagination.style.display = 'none';
-            }
+            const songsContainer = document.getElementById('songs-container');
+            songsContainer.innerHTML = '<div class="loading">正在加载歌曲...</div>';
             
             try {
-                let songs = [];
+                const config = getSearchConfig(category);
                 
-                if (category === 'chinese-artists' || category === 'western-artists') {
-                    renderArtistsList(category);
-                    return;
-                } else if (category === 'chinese-pop') {
-                    const artistsToSearch = CHINESE_ARTISTS.slice(0, 8);
-                    for (let artist of artistsToSearch) {
-                        const artistSongs = await searchMusic(artist, 10, (currentChartPage - 1) * 5);
-                        songs = songs.concat(artistSongs);
-                    }
-                } else if (category === 'western-pop') {
-                    const artistsToSearch = WESTERN_ARTISTS.slice(0, 8);
-                    for (let artist of artistsToSearch) {
-                        const artistSongs = await searchMusic(artist, 10, (currentChartPage - 1) * 5);
-                        songs = songs.concat(artistSongs);
-                    }
-                }
-                
-                songs = removeDuplicateSongs(songs);
-                
-                if (songs.length === 0 && currentChartPage === 1) {
-                    if (songsContainer) {
-                        songsContainer.innerHTML = '<div class="error">未找到相关歌曲，请尝试其他分类</div>';
-                    }
+                if (config.type === 'artists') {
+                    renderArtistsList(config.artists);
                     return;
                 }
                 
-                if (currentChartPage === 1) {
-                    currentSongs = songs;
-                } else {
-                    currentSongs = currentSongs.concat(songs);
+                const searchTerm = config.terms[0];
+                currentSongs = await searchMusic(searchTerm, 30);
+                
+                if (currentSongs.length === 0) {
+                    for (let i = 1; i < config.terms.length; i++) {
+                        if (currentSongs.length > 0) break;
+                        currentSongs = await searchMusic(config.terms[i], 20);
+                    }
                 }
                 
-                // 修复：渲染到当前视图的容器
-                renderSongsToCurrentContainer(currentSongs);
-                updateChartsPagination();
+                if (currentSongs.length === 0) {
+                    songsContainer.innerHTML = '<div class="error">未找到相关歌曲，请尝试其他分类</div>';
+                    return;
+                }
+                
+                renderSongs(currentSongs);
                 
             } catch (error) {
                 console.error('加载排行榜失败:', error);
-                if (currentChartPage === 1) {
-                    if (songsContainer) {
-                        songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
-                    }
-                } else {
-                    showMessage('加载更多失败，请重试');
-                }
+                songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
             }
         }
 
-        // 修复容器选择逻辑
-        function getCurrentSongsContainer() {
-            if (isMobileView) {
-                const activeTab = document.querySelector('.mobile-tab.active');
-                if (activeTab && activeTab.dataset.tab === 'songs') {
-                    const artistView = document.getElementById('artist-view-mobile');
-                    
-                    // 修复：使用计算样式准确检查显示状态
-                    const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
-                    
-                    if (artistView && artistViewComputed !== 'none') {
-                        return document.getElementById('artist-songs-container-mobile');
-                    } else {
-                        return document.getElementById('songs-container-mobile');
-                    }
-                }
-            } else {
-                // 修复桌面端逻辑
-                const artistView = document.getElementById('artist-view');
-                const chartsView = document.getElementById('charts-view');
-                
-                // 使用计算样式，不要依赖内联样式
-                const artistViewComputed = artistView ? window.getComputedStyle(artistView).display : 'none';
-                const chartsViewComputed = chartsView ? window.getComputedStyle(chartsView).display : 'none';
-                
-                if (artistViewComputed !== 'none') {
-                    return document.getElementById('artist-songs-container');
-                } else {
-                    return document.getElementById('songs-container');
-                }
-            }
-            return null;
-        }
-
-        // 修复：获取当前视图的分页容器
-        function getCurrentPaginationContainer() {
-            if (isMobileView) {
-                const artistView = document.getElementById('artist-view-mobile');
-                if (artistView && artistView.style.display !== 'none') {
-                    return document.getElementById('artist-pagination-mobile');
-                } else {
-                    return document.getElementById('charts-pagination-mobile');
-                }
-            } else {
-                const artistView = document.getElementById('artist-view');
-                if (artistView && artistView.style.display !== 'none') {
-                    return document.getElementById('artist-pagination');
-                } else {
-                    return document.getElementById('charts-pagination');
-                }
-            }
-        }
-
-        function loadMoreCharts() {
-            currentChartPage++;
-            const activeCategory = document.querySelector('.chart-category.active').dataset.category;
-            loadChart(activeCategory);
-        }
-
-        function updateChartsPagination() {
-            const pagination = getCurrentPaginationContainer();
-            const pageInfo = isMobileView ? 
-                document.getElementById('charts-page-info-mobile') : 
-                document.getElementById('charts-page-info');
-            const loadMoreBtn = isMobileView ? 
-                document.getElementById('load-more-charts-mobile') : 
-                document.getElementById('load-more-charts');
-            
-            if (pagination) pagination.style.display = 'flex';
-            if (pageInfo) pageInfo.textContent = '第 ' + currentChartPage + ' 页 • ' + currentSongs.length + ' 首歌曲';
-            
-            if (loadMoreBtn) {
-                if (currentChartPage >= 3) {
-                    loadMoreBtn.disabled = true;
-                    loadMoreBtn.textContent = '已加载全部';
-                } else {
-                    loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = '加载更多';
-                }
-            }
-        }
-
-        function renderArtistsList(category) {
-            const songsContainer = getCurrentSongsContainer();
-            const pagination = getCurrentPaginationContainer();
-            
-            if (songsContainer) {
-                songsContainer.innerHTML = '';
-            }
-            if (pagination) {
-                pagination.style.display = 'none';
-            }
-            
-            const artists = category === 'chinese-artists' ? CHINESE_ARTISTS : WESTERN_ARTISTS;
+        function renderArtistsList(artists) {
+            const songsContainer = document.getElementById('songs-container');
+            songsContainer.innerHTML = '';
             
             artists.forEach(artist => {
                 const artistElement = document.createElement('div');
                 artistElement.className = 'song';
-                artistElement.innerHTML = '<div class="song-info"><div class="song-title">' + artist + '</div><div class="song-artist">' + (category === 'chinese-artists' ? '华语歌手' : '欧美歌手') + '</div></div><div class="song-controls"><button class="add-btn" data-artist="' + artist + '">查看歌曲</button></div>';
-                if (songsContainer) {
-                    songsContainer.appendChild(artistElement);
-                }
+                artistElement.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">${artist}</div>
+                        <div class="song-artist">歌手</div>
+                    </div>
+                    <div class="song-controls">
+                        <button class="add-btn" data-artist="${artist}">搜索歌曲</button>
+                    </div>
+                `;
+                songsContainer.appendChild(artistElement);
             });
             
-            if (songsContainer) {
-                songsContainer.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const artist = this.getAttribute('data-artist');
-                        showArtistView(artist);
-                    });
+            document.querySelectorAll('.add-btn[data-artist]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const artist = this.dataset.artist;
+                    document.getElementById('search-input').value = artist;
+                    performSearch();
                 });
-            }
+            });
         }
 
-        // 歌手歌曲加载
-        async function loadArtistSongs(artistName, page, isMobile = false) {
-            const songsContainer = isMobile ? 
-                document.getElementById('artist-songs-container-mobile') : 
-                document.getElementById('artist-songs-container');
-            const offset = (page - 1) * SONGS_PER_PAGE;
-            
-            if (page === 1 && songsContainer) {
-                songsContainer.innerHTML = '<div class="loading">正在加载歌手歌曲...</div>';
-            }
-            
-            try {
-                const songs = await searchMusic(artistName, SONGS_PER_PAGE, offset);
-                
-                if (songs.length === 0 && page === 1) {
-                    if (songsContainer) {
-                        songsContainer.innerHTML = '<div class="error">未找到该歌手的歌曲</div>';
-                    }
-                    return;
-                }
-                
-                if (page === 1) {
-                    currentSongs = songs;
-                } else {
-                    currentSongs = currentSongs.concat(songs);
-                }
-                
-                renderArtistSongs(currentSongs, isMobile);
-                updateArtistPagination(songs.length, isMobile);
-                
-            } catch (error) {
-                console.error('加载歌手歌曲失败:', error);
-                if (page === 1) {
-                    if (songsContainer) {
-                        songsContainer.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
-                    }
-                } else {
-                    showMessage('加载更多失败，请重试');
-                    currentArtistPage--;
-                }
-            }
-        }
-
-        function loadMoreArtist() {
-            currentArtistPage++;
-            loadArtistSongs(currentArtist, currentArtistPage, isMobileView);
-        }
-
-        function updateArtistPagination(newSongsCount, isMobile = false) {
-            const pageInfo = isMobile ? 
-                document.getElementById('artist-page-info-mobile') : 
-                document.getElementById('artist-page-info');
-            const loadMoreBtn = isMobile ? 
-                document.getElementById('load-more-artist-mobile') : 
-                document.getElementById('load-more-artist');
-            const songCount = isMobile ? 
-                document.getElementById('artist-song-count-mobile') : 
-                document.getElementById('artist-song-count');
-            
-            if (pageInfo) pageInfo.textContent = '第 ' + currentArtistPage + ' 页 • ' + currentSongs.length + ' 首歌曲';
-            if (songCount) songCount.textContent = currentSongs.length + ' 首歌曲';
-            
-            if (loadMoreBtn) {
-                if (currentSongs.length >= 200 || newSongsCount < SONGS_PER_PAGE) {
-                    loadMoreBtn.disabled = true;
-                    loadMoreBtn.textContent = '已加载全部';
-                } else {
-                    loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = '加载更多';
-                }
-            }
-        }
-
-        function renderArtistSongs(songs, isMobile = false) {
-            const songsContainer = isMobile ? 
-                document.getElementById('artist-songs-container-mobile') : 
-                document.getElementById('artist-songs-container');
-            
-            if (!songsContainer) return;
-            
-            if (currentArtistPage === 1) {
-                songsContainer.innerHTML = '';
-            }
+        function renderSongs(songs) {
+            const songsContainer = document.getElementById('songs-container');
+            songsContainer.innerHTML = '';
             
             songs.forEach(song => {
                 const songElement = document.createElement('div');
                 songElement.className = 'song';
-                
-                // 🔧 修改：判断当前歌曲是否正在播放
-                const isPlaying = currentPlayingSongId === song.id;
-                const playButtonText = isPlaying ? '⏸️' : '▶️';
-                const playButtonClass = isPlaying ? 'preview-btn playing' : 'preview-btn';
-                
-                let previewBtn = '';
-                if (song.previewUrl) {
-                    previewBtn = `<button class="${playButtonClass}" data-id="${song.id}" data-url="${song.previewUrl}">${playButtonText}</button>`;
-                }
-                
-                songElement.innerHTML = '<div class="song-info"><div class="song-title">' + song.title + '</div><div class="song-artist">' + song.artist + '</div><div class="song-album">' + song.album + '</div></div><div class="song-controls">' + previewBtn + '<button class="add-btn" data-id="' + song.id + '">+</button></div>';
-                
-                // 🔧 修改：如果这首歌正在播放，添加高亮样式
-                if (isPlaying) {
-                    songElement.classList.add('playing');
-                }
-                
+                songElement.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                        <div class="song-album">${song.album}</div>
+                    </div>
+                    <div class="song-controls">
+                        ${song.previewUrl ? `<button class="preview-btn" data-url="${song.previewUrl}">▶️</button>` : ''}
+                        <button class="add-btn" data-id="${song.id}">+</button>
+                    </div>
+                `;
                 songsContainer.appendChild(songElement);
             });
             
-            songsContainer.querySelectorAll('.add-btn').forEach(btn => {
-                if (btn.getAttribute('data-id')) {
-                    btn.addEventListener('click', function() {
-                        const songId = this.getAttribute('data-id');
-                        addSongToPlaylist(songId);
-                    });
-                }
-            });
-            
-            songsContainer.querySelectorAll('.preview-btn').forEach(btn => {
+            document.querySelectorAll('.add-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const songId = this.getAttribute('data-id');
-                    const previewUrl = this.getAttribute('data-url');
-                    togglePreview(songId, previewUrl, this);
+                    const songId = this.dataset.id;
+                    addSongToPlaylist(songId);
                 });
             });
-        }
-
-        // 修复：增强歌曲渲染到当前容器
-        function renderSongsToCurrentContainer(songs) {
-            const songsContainer = getCurrentSongsContainer();
-            if (!songsContainer) return;
             
-            if (currentChartPage === 1) {
-                songsContainer.innerHTML = '';
-            }
-            
-            songs.forEach(song => {
-                const songElement = document.createElement('div');
-                songElement.className = 'song';
-                
-                // 🔧 修改：判断当前歌曲是否正在播放
-                const isPlaying = currentPlayingSongId === song.id;
-                const playButtonText = isPlaying ? '⏸️' : '▶️';
-                const playButtonClass = isPlaying ? 'preview-btn playing' : 'preview-btn';
-                
-                let previewBtn = '';
-                if (song.previewUrl) {
-                    previewBtn = `<button class="${playButtonClass}" data-id="${song.id}" data-url="${song.previewUrl}">${playButtonText}</button>`;
-                }
-                
-                songElement.innerHTML = '<div class="song-info"><div class="song-title">' + song.title + '</div><div class="song-artist">' + song.artist + '</div><div class="song-album">' + song.album + '</div></div><div class="song-controls">' + previewBtn + '<button class="add-btn" data-id="' + song.id + '">+</button></div>';
-                
-                // 🔧 修改：如果这首歌正在播放，添加高亮样式
-                if (isPlaying) {
-                    songElement.classList.add('playing');
-                }
-                
-                songsContainer.appendChild(songElement);
-            });
-            
-            songsContainer.querySelectorAll('.add-btn').forEach(btn => {
-                if (btn.getAttribute('data-id')) {
-                    btn.addEventListener('click', function() {
-                        const songId = this.getAttribute('data-id');
-                        addSongToPlaylist(songId);
-                    });
-                }
-            });
-            
-            songsContainer.querySelectorAll('.preview-btn').forEach(btn => {
+            document.querySelectorAll('.preview-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const songId = this.getAttribute('data-id');
-                    const previewUrl = this.getAttribute('data-url');
-                    togglePreview(songId, previewUrl, this);
+                    const previewUrl = this.dataset.url;
+                    previewSong(previewUrl);
                 });
             });
         }
 
-        // 🔧 新增：全局音频管理器 - 播放/停止切换
-        function togglePreview(songId, previewUrl, buttonElement) {
-            // 如果点击的是同一首歌
-            if (currentPlayingSongId === songId) {
-                // 如果正在播放，停止播放
-                if (currentAudio && !currentAudio.paused) {
-                    stopAudio();
-                    showMessage('⏸️ 已停止播放');
-                    return;
-                }
-            }
-            
-            // 如果点击的是不同歌曲，先停止当前播放
-            if (currentAudio && !currentAudio.paused) {
-                stopAudio();
-            }
-            
-            // 播放新歌曲
-            playAudio(songId, previewUrl);
-            
-            // 更新按钮状态和视觉反馈
-            updatePlaybackUI(songId, buttonElement);
-            
-            showMessage('▶️ 开始试听... (30秒预览)');
-        }
-
-        // 🔧 新增：播放音频
-        function playAudio(songId, previewUrl) {
-            try {
-                currentAudio = new Audio(previewUrl);
-                currentPlayingSongId = songId;
-                
-                // 设置音频事件监听
-                currentAudio.addEventListener('ended', function() {
-                    console.log('音频播放结束');
-                    resetPlaybackState();
-                });
-                
-                currentAudio.addEventListener('error', function(e) {
-                    console.error('音频播放错误:', e);
-                    showMessage('❌ 播放失败，请重试');
-                    resetPlaybackState();
-                });
-                
-                // 播放音频
-                currentAudio.play().catch(error => {
-                    console.error('播放失败:', error);
-                    showMessage('❌ 播放失败: ' + error.message);
-                    resetPlaybackState();
-                });
-                
-                // 30秒后自动停止
-                if (audioTimeoutId) {
-                    clearTimeout(audioTimeoutId);
-                }
-                audioTimeoutId = setTimeout(() => {
-                    if (currentAudio && !currentAudio.paused) {
-                        stopAudio();
-                        showMessage('⏹️ 预览已结束 (30秒)');
-                    }
-                }, 30000);
-                
-            } catch (error) {
-                console.error('音频初始化失败:', error);
-                showMessage('❌ 音频初始化失败');
-                resetPlaybackState();
-            }
-        }
-
-        // 🔧 新增：停止音频播放
-        function stopAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
-            
-            if (audioTimeoutId) {
-                clearTimeout(audioTimeoutId);
-                audioTimeoutId = null;
-            }
-            
-            resetPlaybackState();
-        }
-
-        // 🔧 新增：重置播放状态
-        function resetPlaybackState() {
-            // 清除高亮样式
-            document.querySelectorAll('.song.playing').forEach(song => {
-                song.classList.remove('playing');
-            });
-            
-            // 重置按钮文本
-            document.querySelectorAll('.preview-btn.playing').forEach(btn => {
-                btn.classList.remove('playing');
-                btn.textContent = '▶️';
-            });
-            
-            currentPlayingSongId = null;
-        }
-
-        // 🔧 新增：更新播放界面状态
-        function updatePlaybackUI(songId, clickedButton) {
-            // 重置所有歌曲的高亮状态
-            document.querySelectorAll('.song.playing').forEach(song => {
-                song.classList.remove('playing');
-            });
-            
-            // 重置所有按钮状态
-            document.querySelectorAll('.preview-btn.playing').forEach(btn => {
-                btn.classList.remove('playing');
-                btn.textContent = '▶️';
-            });
-            
-            // 为当前播放的歌曲添加高亮
-            const songElements = document.querySelectorAll('.song');
-            songElements.forEach(song => {
-                const addBtn = song.querySelector('.add-btn');
-                if (addBtn && addBtn.getAttribute('data-id') == songId) {
-                    song.classList.add('playing');
-                }
-            });
-            
-            // 更新点击的按钮状态
-            if (clickedButton) {
-                clickedButton.classList.add('playing');
-                clickedButton.textContent = '⏸️';
-            }
-        }
-
-        // 工具函数
-        function removeDuplicateSongs(songs) {
-            const seen = new Set();
-            return songs.filter(song => {
-                const key = song.id + '-' + song.title + '-' + song.artist;
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-            });
-        }
-
-        // 歌单功能
         function addSongToPlaylist(songId) {
             const song = currentSongs.find(s => s.id == songId);
+            
             if (song && !playlist.some(s => s.id == songId)) {
                 playlist.push(song);
                 renderPlaylist();
                 updatePlaylistCount();
-                showMessage('已添加 "' + song.title + '" 到歌单');
                 
-                // 如果用户已登录，保存到云端
-                if (currentUser) {
-                    saveUserPlaylist();
-                }
+                showMessage(`已添加 "${song.title}" 到歌单`);
             } else if (playlist.some(s => s.id == songId)) {
-                showMessage('"' + song.title + '" 已在歌单中');
+                showMessage(`"${song.title}" 已在歌单中`);
             }
         }
 
         function renderPlaylist() {
-            const desktopPlaylistContainer = document.getElementById('playlist-items');
-            const mobilePlaylistContainer = document.getElementById('playlist-items-mobile');
+            const playlistContainer = document.getElementById('playlist-items');
             
             if (playlist.length === 0) {
-                const emptyHTML = '<div class="empty-playlist">歌单为空，请从左侧添加歌曲</div>';
-                if (desktopPlaylistContainer) desktopPlaylistContainer.innerHTML = emptyHTML;
-                if (mobilePlaylistContainer) mobilePlaylistContainer.innerHTML = emptyHTML;
+                playlistContainer.innerHTML = '<div class="empty-playlist">歌单为空，请从左侧添加歌曲</div>';
                 return;
             }
             
-            let playlistHTML = '';
-            playlist.forEach((song, index) => {
-                playlistHTML += '<div class="playlist-item"><div style="display: flex; align-items: center;"><div class="song-number">' + (index + 1) + '</div><div class="song-info"><div class="song-title">' + song.title + '</div><div class="song-artist">' + song.artist + '</div></div></div><button class="remove-btn" data-index="' + index + '">×</button></div>';
-            });
+            playlistContainer.innerHTML = '';
             
-            if (desktopPlaylistContainer) desktopPlaylistContainer.innerHTML = playlistHTML;
-            if (mobilePlaylistContainer) mobilePlaylistContainer.innerHTML = playlistHTML;
+            playlist.forEach((song, index) => {
+                const playlistItem = document.createElement('div');
+                playlistItem.className = 'playlist-item';
+                playlistItem.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <div class="song-number">${index + 1}</div>
+                        <div class="song-info">
+                            <div class="song-title">${song.title}</div>
+                            <div class="song-artist">${song.artist}</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" data-index="${index}">×</button>
+                `;
+                playlistContainer.appendChild(playlistItem);
+            });
             
             document.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    const index = parseInt(this.getAttribute('data-index'));
+                    const index = parseInt(this.dataset.index);
                     removeSongFromPlaylist(index);
                 });
             });
@@ -2770,24 +1831,13 @@
                 playlist.splice(index, 1);
                 renderPlaylist();
                 updatePlaylistCount();
-                showMessage('已从歌单移除 "' + songTitle + '"');
-                
-                // 如果用户已登录，保存到云端
-                if (currentUser) {
-                    saveUserPlaylist();
-                }
+                showMessage(`已从歌单移除 "${songTitle}"`);
             }
         }
 
         function updatePlaylistCount() {
-            const count = playlist.length;
-            const desktopCount = document.getElementById('playlist-count');
-            const mobileCount = document.getElementById('mobile-playlist-count');
-            const mobileDisplayCount = document.getElementById('mobile-playlist-count-display');
-            
-            if (desktopCount) desktopCount.textContent = '(' + count + ')';
-            if (mobileCount) mobileCount.textContent = '(' + count + ')';
-            if (mobileDisplayCount) mobileDisplayCount.textContent = '(' + count + ')';
+            const playlistCount = document.getElementById('playlist-count');
+            playlistCount.textContent = `(${playlist.length})`;
         }
 
         function clearPlaylist() {
@@ -2795,188 +1845,99 @@
                 showMessage('歌单已经是空的');
                 return;
             }
+            
             if (confirm('确定要清空歌单吗？')) {
                 playlist = [];
                 renderPlaylist();
                 updatePlaylistCount();
                 showMessage('歌单已清空');
-                
-                // 如果用户已登录，保存到云端
-                if (currentUser) {
-                    saveUserPlaylist();
-                }
             }
         }
 
-        // 搜索功能
-        async function performSearch(searchInputId) {
-            const searchInput = document.getElementById(searchInputId);
+        function sharePlaylist() {
+            if (playlist.length === 0) {
+                showMessage('歌单为空，无法分享');
+                return;
+            }
+            
+            if (!currentUser) {
+                showMessage('请先登录以分享歌单');
+                document.getElementById('login-modal').style.display = 'flex';
+                return;
+            }
+            
+            showMessage('分享功能开发中...');
+        }
+
+        async function performSearch() {
+            const searchInput = document.getElementById('search-input');
             const query = searchInput.value.trim();
+            
             if (!query) {
                 showMessage('请输入搜索关键词');
                 return;
             }
-            const isArtistSearch = CHINESE_ARTISTS.includes(query) || WESTERN_ARTISTS.includes(query);
-            if (isArtistSearch) {
-                showArtistView(query);
-                return;
-            }
-            const songsContainer = getCurrentSongsContainer();
-            if (songsContainer) {
-                songsContainer.innerHTML = '<div class="loading">搜索中...</div>';
-            }
+            
+            const songsContainer = document.getElementById('songs-container');
+            songsContainer.innerHTML = '<div class="loading">搜索中...</div>';
+            
             try {
                 currentSongs = await searchMusic(query, 50);
+                
                 if (currentSongs.length === 0) {
-                    if (songsContainer) {
-                        songsContainer.innerHTML = '<div class="error">未找到相关歌曲</div>';
-                    }
+                    songsContainer.innerHTML = '<div class="error">未找到相关歌曲</div>';
                     return;
                 }
-                renderSongsToCurrentContainer(currentSongs);
-                showMessage('找到 ' + currentSongs.length + ' 首相关歌曲');
+                
+                renderSongs(currentSongs);
+                showMessage(`找到 ${currentSongs.length} 首相关歌曲`);
+                
             } catch (error) {
                 console.error('搜索失败:', error);
-                if (songsContainer) {
-                    songsContainer.innerHTML = '<div class="error">搜索失败，请重试</div>';
-                }
+                songsContainer.innerHTML = '<div class="error">搜索失败，请重试</div>';
             }
         }
 
-        // 消息显示
-        function showMessage(message, type = 'info') {
+        let currentAudio = null;
+
+        function previewSong(previewUrl) {
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+            
+            currentAudio = new Audio(previewUrl);
+            currentAudio.play().catch(error => {
+                console.error('播放失败:', error);
+                showMessage('播放失败，请重试');
+            });
+            
+            showMessage('开始试听...');
+        }
+
+        function showMessage(message) {
             const messageEl = document.createElement('div');
             messageEl.textContent = message;
-            messageEl.style.cssText = 'position: fixed; top: 20px; right: 20px; background: ' + 
-                (type === 'success' ? 'rgba(76, 175, 80, 0.9)' : 
-                 type === 'error' ? 'rgba(244, 67, 54, 0.9)' : 
-                 'rgba(0, 0, 0, 0.8)') + 
-                '; color: white; padding: 12px 20px; border-radius: 5px; z-index: 1000; font-size: 14px;';
+            messageEl.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+                transition: all 0.3s;
+            `;
+            
             document.body.appendChild(messageEl);
+            
             setTimeout(() => {
                 messageEl.style.opacity = '0';
-                messageEl.style.transition = 'opacity 0.3s';
                 setTimeout(() => {
-                    if (messageEl.parentNode) {
-                        messageEl.parentNode.removeChild(messageEl);
-                    }
+                    document.body.removeChild(messageEl);
                 }, 300);
             }, 3000);
         }
-
-        // 🔧 新增：页面从后台恢复时重新检查认证状态
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('页面恢复可见，重新检查认证状态');
-                
-                // 检查 localStorage 中的备份
-                try {
-                    const backup = localStorage.getItem('firebase_user_backup');
-                    if (backup) {
-                        const userData = JSON.parse(backup);
-                        console.log('找到本地用户备份:', userData.email);
-                        
-                        // 如果当前没有用户但本地有备份，尝试恢复
-                        if (!currentUser && auth) {
-                            console.log('尝试恢复用户会话...');
-                            // 触发 Firebase 重新检查状态
-                            setTimeout(() => {
-                                auth.currentUser?.reload().catch(() => {});
-                            }, 500);
-                        }
-                    }
-                } catch (e) {
-                    // 忽略错误
-                }
-            }
-        });
-
-        // 🔧 新增：页面加载时尝试从备份恢复UI
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                try {
-                    const backup = localStorage.getItem('firebase_user_backup');
-                    if (backup && !currentUser) {
-                        const userData = JSON.parse(backup);
-                        console.log('页面加载完成，找到本地用户备份:', userData.email);
-                        // 显示备份的用户信息（即使 Firebase 尚未恢复）
-                        // 这可以提供更好的用户体验
-                        const userInfo = document.getElementById('user-info');
-                        const loginBtn = document.getElementById('login-btn');
-                        const userAvatar = document.getElementById('user-avatar');
-                        const userEmail = document.getElementById('user-email');
-                        
-                        if (userInfo && loginBtn && userAvatar && userEmail) {
-                            userInfo.style.display = 'flex';
-                            loginBtn.style.display = 'none';
-                            userAvatar.textContent = userData.displayName?.charAt(0)?.toUpperCase() || 'U';
-                            userEmail.textContent = userData.displayName || userData.email;
-                            
-                            // 显示临时用户信息，直到 Firebase 真正恢复
-                            setTimeout(() => {
-                                if (!currentUser) {
-                                    console.log('Firebase 尚未恢复，显示临时用户界面');
-                                }
-                            }, 2000);
-                        }
-                    }
-                } catch (e) {
-                    // 忽略错误
-                }
-            }, 1000);
-        });
-
-        // 🔧 新增：处理页面卸载前备份用户状态
-        window.addEventListener('beforeunload', function() {
-            if (currentUser) {
-                console.log('页面卸载前备份用户状态');
-                try {
-                    const backup = {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        displayName: currentUser.displayName || currentUser.email.split('@')[0],
-                        timestamp: Date.now(),
-                        isBackup: true
-                    };
-                    localStorage.setItem('firebase_user_last_backup', JSON.stringify(backup));
-                } catch (e) {
-                    // 忽略错误
-                }
-            }
-        });
-
-        // 🔧 新增：检查认证重定向参数
-        function checkAuthRedirectParams() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const hasFirebaseParams = urlParams.has('__firebase_request_key') || 
-                                   urlParams.has('apiKey');
-            
-            if (hasFirebaseParams || window.location.hash.includes('access_token')) {
-                console.log('=== 检测到认证重定向参数 ===');
-                console.log('完整URL:', window.location.href);
-                console.log('Search参数:', window.location.search);
-                console.log('Hash参数:', window.location.hash);
-                
-                // 延迟处理重定向
-                setTimeout(() => {
-                    if (auth) {
-                        auth.getRedirectResult()
-                          .then(result => {
-                              console.log('延迟重定向结果:', result);
-                              if (result.user) {
-                                  console.log('延迟处理登录成功:', result.user.email);
-                              }
-                          })
-                          .catch(error => {
-                              console.log('延迟重定向错误:', error);
-                          });
-                    }
-                }, 3000);
-            }
-        }
-
-        // 在页面加载后调用
-        setTimeout(checkAuthRedirectParams, 500);
     </script>
 </body>
 </html>
