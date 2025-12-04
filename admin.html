@@ -3,11 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>歌厅定制 - 管理面板</title>
+    <title>歌厅定制 - 管理面板 v2.1.2</title>
     
-    <!-- 配置加载 -->
-    <script src="firebase-config.js"></script>
-    <script src="config.js"></script>
+    <!-- 紧急修复：确保配置存在 -->
+    <script>
+        // 紧急修复：防止配置加载失败
+        window.ADMIN_CONFIG = window.ADMIN_CONFIG || { password: "82030901" };
+        window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
+            apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
+            authDomain: "karaoke-customizer.firebaseapp.com",
+            projectId: "karaoke-customizer",
+            storageBucket: "karaoke-customizer.firebasestorage.app",
+            messagingSenderId: "593643512892",
+            appId: "1:593643512892:web:c21ec4ce7c2d286fed4f39",
+            measurementId: "G-D791D33Y6R"
+        };
+        
+        // 如果 config.js 存在，保留其日志
+        window.APP_CONFIG = window.APP_CONFIG || {
+            name: "定制你的专属歌厅",
+            version: "2.1.2",
+            environment: "production"
+        };
+        console.log(`🚀 ${window.APP_CONFIG.name} v${window.APP_CONFIG.version} - 管理面板`);
+    </script>
     
     <style>
         * {
@@ -21,6 +40,7 @@
             background: #f5f5f5;
             color: #333;
             padding: 20px;
+            min-height: 100vh;
         }
         
         .admin-container {
@@ -484,6 +504,45 @@
             display: none;
         }
         
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #f8f9fa;
+            color: #1a2a6c;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            transition: all 0.3s;
+        }
+        
+        .back-link:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
         @media (max-width: 768px) {
             .admin-header {
                 flex-direction: column;
@@ -515,18 +574,31 @@
     </style>
 </head>
 <body>
+    <!-- 通知区域 -->
+    <div class="notification" id="notification"></div>
+    
     <!-- 登录界面 -->
     <div class="login-container" id="login-container">
         <h1 class="login-title">🎤 管理面板登录</h1>
         <input type="password" class="login-input" id="admin-password" placeholder="请输入管理员密码" autocomplete="off">
         <button class="login-btn" onclick="checkAdminPassword()">登录</button>
+        
+        <!-- 返回主页链接 -->
+        <a href="index.html" class="back-link">← 返回主应用</a>
+        
         <div class="login-error" id="login-error">密码错误，请重试</div>
+        
+        <!-- 调试信息（仅开发时显示） -->
+        <div id="debug-info" style="margin-top: 20px; font-size: 0.8rem; color: #666; display: none;">
+            <div>配置状态: <span id="config-status">检查中...</span></div>
+            <div>Firebase状态: <span id="firebase-status">检查中...</span></div>
+        </div>
     </div>
 
     <!-- 主管理界面 -->
     <div class="admin-container" id="admin-container" style="display: none;">
         <div class="admin-header">
-            <h1 class="admin-title">🎤 歌厅定制 - 管理面板</h1>
+            <h1 class="admin-title">🎤 歌厅定制 - 管理面板 v2.1.2</h1>
             <div class="admin-nav">
                 <a href="index.html" class="btn btn-primary">返回主应用</a>
                 <button class="btn btn-success" onclick="refreshData()">🔄 刷新数据</button>
@@ -646,20 +718,77 @@
         </div>
     </div>
 
-    <!-- 引入 Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <!-- 引入 Firebase（兼容版本） -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
     
     <script>
-        // ==================== 管理员配置 ====================
-        const ADMIN_PASSWORD = ADMIN_CONFIG.password;
+        // ==================== 全局变量和配置 ====================
+        console.log('🔧 管理面板初始化...');
+        
+        // 管理员配置（优先使用全局配置，否则使用默认）
+        const ADMIN_PASSWORD = window.ADMIN_CONFIG?.password || "82030901";
         const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2小时
+        
+        // Firebase 配置（优先使用全局配置）
+        const firebaseConfig = window.FIREBASE_CONFIG || {
+            apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
+            authDomain: "karaoke-customizer.firebaseapp.com",
+            projectId: "karaoke-customizer",
+            storageBucket: "karaoke-customizer.firebasestorage.app",
+            messagingSenderId: "593643512892",
+            appId: "1:593643512892:web:c21ec4ce7c2d286fed4f39",
+            measurementId: "G-D791D33Y6R"
+        };
+        
+        let firebaseApp, firestore;
+        let allOrders = [];
+        let filteredOrders = [];
+
+        // ==================== 工具函数 ====================
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+        
+        function showWarning(message) {
+            showNotification(message, 'warning');
+        }
+        
+        function formatDuration(milliseconds) {
+            if (!milliseconds) return '';
+            const minutes = Math.floor(milliseconds / 60000);
+            const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
+            return `${minutes}:${seconds.padStart(2, '0')}`;
+        }
+        
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': '待确认',
+                'confirmed': '已确认', 
+                'completed': '已完成',
+                'cancelled': '已取消'
+            };
+            return statusMap[status] || status;
+        }
 
         // ==================== 管理员认证 ====================
         function checkAdminPassword() {
             const passwordInput = document.getElementById('admin-password');
             const errorElement = document.getElementById('login-error');
             const password = passwordInput.value.trim();
+            
+            console.log('🔑 密码验证中...');
             
             if (password === ADMIN_PASSWORD) {
                 // 登录成功
@@ -673,11 +802,13 @@
                 document.getElementById('admin-container').style.display = 'block';
                 
                 initializeFirebase();
+                showNotification('✅ 登录成功！');
             } else {
                 // 登录失败
                 errorElement.style.display = 'block';
                 passwordInput.value = '';
                 passwordInput.focus();
+                showError('❌ 密码错误，请重试');
                 
                 // 3秒后隐藏错误信息
                 setTimeout(() => {
@@ -701,31 +832,23 @@
                 } else {
                     // 会话过期
                     localStorage.removeItem('adminSession');
+                    showWarning('⏰ 会话已过期，请重新登录');
                 }
             }
             return false;
         }
 
         function logoutAdmin() {
-            localStorage.removeItem('adminSession');
-            location.reload();
+            if (confirm('确定要退出管理面板吗？')) {
+                localStorage.removeItem('adminSession');
+                location.reload();
+            }
         }
 
-        // 监听回车键
-        document.getElementById('admin-password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                checkAdminPassword();
-            }
-        });
-
         // ==================== Firebase 初始化 ====================
-        let firebaseApp, firestore;
-        
         function initializeFirebase() {
             try {
-                // 使用环境变量配置
-                const firebaseConfig = getFirebaseConfig();
-                console.log('🔧 Firebase 配置:', firebaseConfig);
+                console.log('🔥 Firebase 初始化中...', firebaseConfig);
                 
                 firebaseApp = firebase.initializeApp(firebaseConfig);
                 firestore = firebaseApp.firestore();
@@ -735,17 +858,30 @@
                 setupRealtimeListener();
             } catch (error) {
                 console.error('❌ Firebase 初始化失败:', error);
-                showError('Firebase 初始化失败，请检查控制台');
+                showError('Firebase 初始化失败：' + error.message);
+                document.getElementById('orders-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div>❌</div>
+                            <div>Firebase 连接失败</div>
+                            <div style="margin-top: 10px; font-size: 0.9rem; color: #999;">
+                                错误信息: ${error.message}
+                            </div>
+                            <button class="btn btn-primary" onclick="initializeFirebase()" style="margin-top: 10px;">
+                                重试连接
+                            </button>
+                        </td>
+                    </tr>
+                `;
             }
         }
 
         // ==================== 数据管理 ====================
-        let allOrders = [];
-        let filteredOrders = [];
-        
         async function loadOrders() {
             try {
                 showLoading();
+                console.log('📥 加载订单数据...');
+                
                 const snapshot = await firestore.collection('orders')
                     .orderBy('orderDate', 'desc')
                     .get();
@@ -754,7 +890,7 @@
                 snapshot.forEach(doc => {
                     const data = doc.data();
                     
-                    // 修复：标准化订单数据，确保所有字段都有值
+                    // 标准化订单数据
                     const standardizedOrder = {
                         id: doc.id,
                         ...data,
@@ -770,7 +906,7 @@
                             songCount: data.pricing?.songCount || 0,
                             packagePrice: data.pricing?.packagePrice || 0,
                             shippingFee: data.pricing?.shippingFee || 0,
-                            totalPrice: data.pricing?.totalPrice || 0  // 关键修复：确保 totalPrice 有值
+                            totalPrice: data.pricing?.totalPrice || 0
                         },
                         playlist: data.playlist || [],
                         orderDate: data.orderDate?.toDate ? data.orderDate.toDate() : new Date(data.orderDate || new Date()),
@@ -782,11 +918,29 @@
                     allOrders.push(standardizedOrder);
                 });
                 
+                console.log(`✅ 加载完成，共 ${allOrders.length} 个订单`);
                 filterOrders();
                 updateStats();
+                showNotification(`✅ 加载完成 ${allOrders.length} 个订单`);
+                
             } catch (error) {
                 console.error('加载订单失败:', error);
                 showError('加载订单失败: ' + error.message);
+                
+                document.getElementById('orders-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <div>❌</div>
+                            <div>加载订单失败</div>
+                            <div style="margin-top: 10px; font-size: 0.9rem; color: #999;">
+                                ${error.message}
+                            </div>
+                            <button class="btn btn-primary" onclick="loadOrders()" style="margin-top: 10px;">
+                                重试
+                            </button>
+                        </td>
+                    </tr>
+                `;
             }
         }
         
@@ -794,11 +948,11 @@
             firestore.collection('orders')
                 .orderBy('orderDate', 'desc')
                 .onSnapshot(snapshot => {
+                    console.log('🔄 收到实时更新');
                     allOrders = [];
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         
-                        // 修复：标准化订单数据，确保所有字段都有值
                         const standardizedOrder = {
                             id: doc.id,
                             ...data,
@@ -814,7 +968,7 @@
                                 songCount: data.pricing?.songCount || 0,
                                 packagePrice: data.pricing?.packagePrice || 0,
                                 shippingFee: data.pricing?.shippingFee || 0,
-                                totalPrice: data.pricing?.totalPrice || 0  // 关键修复：确保 totalPrice 有值
+                                totalPrice: data.pricing?.totalPrice || 0
                             },
                             playlist: data.playlist || [],
                             orderDate: data.orderDate?.toDate ? data.orderDate.toDate() : new Date(data.orderDate || new Date()),
@@ -828,8 +982,10 @@
                     
                     filterOrders();
                     updateStats();
+                    showNotification(`🔄 数据已更新，当前 ${allOrders.length} 个订单`);
                 }, error => {
                     console.error('实时监听错误:', error);
+                    showError('实时连接断开: ' + error.message);
                 });
         }
         
@@ -856,7 +1012,7 @@
                     else if (sizeFilter === 'huge') matchesSize = songCount > 500;
                 }
                 
-                // 搜索筛选 - 添加安全访问
+                // 搜索筛选
                 const customerName = order.customerInfo?.name || '未知客户';
                 const customerPhone = order.customerInfo?.phone || '';
                 const customerEmail = order.customerInfo?.email || '';
@@ -981,16 +1137,6 @@
             }).join('');
         }
         
-        function getStatusText(status) {
-            const statusMap = {
-                'pending': '待确认',
-                'confirmed': '已确认', 
-                'completed': '已完成',
-                'cancelled': '已取消'
-            };
-            return statusMap[status] || status;
-        }
-        
         function updateStats() {
             const totalOrders = allOrders.length;
             const pendingOrders = allOrders.filter(order => order.status === 'pending').length;
@@ -1010,7 +1156,10 @@
         // ==================== 订单操作 ====================
         function viewOrderDetails(orderId) {
             const order = allOrders.find(o => o.id === orderId);
-            if (!order) return;
+            if (!order) {
+                showError('未找到订单');
+                return;
+            }
             
             const modal = document.getElementById('order-modal');
             const details = document.getElementById('order-details');
@@ -1138,7 +1287,10 @@
         
         function viewAllSongs(orderId) {
             const order = allOrders.find(o => o.id === orderId);
-            if (!order) return;
+            if (!order) {
+                showError('未找到订单');
+                return;
+            }
             
             const modal = document.getElementById('songs-modal');
             const content = document.getElementById('songs-modal-content');
@@ -1280,17 +1432,20 @@
                 await firestore.collection('orders').doc(orderId).update({
                     status: newStatus
                 });
-                showMessage(`订单状态已更新为: ${getStatusText(newStatus)}`);
+                showNotification(`✅ 订单状态已更新为: ${getStatusText(newStatus)}`);
             } catch (error) {
                 console.error('更新订单状态失败:', error);
-                showError('更新失败，请重试');
+                showError('❌ 更新失败: ' + error.message);
             }
         }
         
         // ==================== 导出功能 ====================
         function exportSongsToCSV(orderId) {
             const order = allOrders.find(o => o.id === orderId);
-            if (!order) return;
+            if (!order) {
+                showError('未找到订单');
+                return;
+            }
             
             let csvContent = '序号,歌曲名称,歌手,专辑,时长(秒),时长(分:秒)\n';
             
@@ -1300,9 +1455,9 @@
                 
                 const row = [
                     index + 1,
-                    `"${song.title}"`,
-                    `"${song.artist}"`,
-                    `"${song.album || ''}"`,
+                    `"${song.title.replace(/"/g, '""')}"`,
+                    `"${song.artist.replace(/"/g, '""')}"`,
+                    `"${(song.album || '').replace(/"/g, '""')}"`,
                     durationInSeconds,
                     durationFormatted
                 ].join(',');
@@ -1312,8 +1467,9 @@
             
             // 安全访问客户信息
             const customerInfo = order.customerInfo || { name: '未知客户' };
-            downloadCSV(csvContent, `歌单_${customerInfo.name}_${order.orderId}.csv`);
-            showMessage('CSV文件导出成功！');
+            const safeName = customerInfo.name.replace(/[<>:"/\\|?*]/g, '_');
+            downloadCSV(csvContent, `歌单_${safeName}_${order.orderId}.csv`);
+            showNotification('✅ CSV文件导出成功！');
         }
         
         function exportAllData() {
@@ -1334,10 +1490,10 @@
                 
                 const row = [
                     order.orderId,
-                    `"${customerInfo.name}"`,
+                    `"${customerInfo.name.replace(/"/g, '""')}"`,
                     customerInfo.phone,
-                    `"${customerInfo.email || ''}"`,
-                    `"${customerInfo.address}"`,
+                    `"${(customerInfo.email || '').replace(/"/g, '""')}"`,
+                    `"${customerInfo.address.replace(/"/g, '""')}"`,
                     customerInfo.state === 'west' ? '西马' : '东马',
                     order.pricing.package,
                     order.pricing.songCount,
@@ -1349,8 +1505,9 @@
                 csvContent += row + '\n';
             });
             
-            downloadCSV(csvContent, `所有订单_${new Date().toISOString().split('T')[0]}.csv`);
-            showMessage('所有订单数据导出成功！');
+            const dateStr = new Date().toISOString().split('T')[0];
+            downloadCSV(csvContent, `所有订单_${dateStr}.csv`);
+            showNotification(`✅ 所有订单数据导出成功！共 ${allOrders.length} 条记录`);
         }
         
         function downloadCSV(csvContent, filename) {
@@ -1369,7 +1526,10 @@
         
         function printSongs(orderId) {
             const order = allOrders.find(o => o.id === orderId);
-            if (!order) return;
+            if (!order) {
+                showError('未找到订单');
+                return;
+            }
             
             const printWindow = window.open('', '_blank');
             
@@ -1388,6 +1548,8 @@
                             .song-number { font-weight: bold; margin-right: 10px; }
                             @media print {
                                 .no-print { display: none; }
+                                body { font-size: 12pt; }
+                                .song-item { page-break-inside: avoid; }
                             }
                         </style>
                     </head>
@@ -1407,23 +1569,23 @@
                             `).join('')}
                         </div>
                         <div class="no-print" style="margin-top: 30px; text-align: center;">
-                            <button onclick="window.print()">打印</button>
-                            <button onclick="window.close()">关闭</button>
+                            <button onclick="window.print()" style="padding: 10px 20px; margin: 5px;">打印</button>
+                            <button onclick="window.close()" style="padding: 10px 20px; margin: 5px;">关闭</button>
                         </div>
+                        <script>
+                            window.onload = function() {
+                                setTimeout(function() {
+                                    window.print();
+                                }, 500);
+                            };
+                        </script>
                     </body>
                 </html>
             `);
             printWindow.document.close();
         }
         
-        // ==================== 工具函数 ====================
-        function formatDuration(milliseconds) {
-            if (!milliseconds) return '';
-            const minutes = Math.floor(milliseconds / 60000);
-            const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
-            return `${minutes}:${seconds.padStart(2, '0')}`;
-        }
-        
+        // ==================== 其他功能 ====================
         function closeModal() {
             document.getElementById('order-modal').style.display = 'none';
         }
@@ -1434,7 +1596,6 @@
         
         function refreshData() {
             loadOrders();
-            showMessage('数据已刷新！');
         }
         
         function showLoading() {
@@ -1448,34 +1609,42 @@
                 </tr>
             `;
         }
-        
-        function showError(message) {
-            const tbody = document.getElementById('orders-tbody');
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="8" class="empty-state">
-                        <div>❌</div>
-                        <div>${message}</div>
-                        <button class="btn btn-primary" onclick="refreshData()" style="margin-top: 10px;">
-                            重试
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }
-        
-        function showMessage(message) {
-            // 简单的消息提示
-            alert(message);
-        }
 
         // ==================== 初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 管理面板加载完成');
+            
+            // 显示配置状态
+            const debugInfo = document.getElementById('debug-info');
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                debugInfo.style.display = 'block';
+                document.getElementById('config-status').textContent = 
+                    window.ADMIN_CONFIG ? '✅ 已加载' : '❌ 未加载';
+                document.getElementById('firebase-status').textContent = 
+                    window.FIREBASE_CONFIG ? '✅ 已加载' : '❌ 未加载';
+            }
+            
             // 检查管理员会话
             if (!checkAdminSession()) {
                 // 焦点到密码输入框
                 document.getElementById('admin-password').focus();
+                
+                // 监听回车键
+                document.getElementById('admin-password').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        checkAdminPassword();
+                    }
+                });
             }
+            
+            // 点击模态框背景关闭
+            document.getElementById('order-modal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            
+            document.getElementById('songs-modal').addEventListener('click', function(e) {
+                if (e.target === this) closeSongsModal();
+            });
         });
     </script>
 </body>
