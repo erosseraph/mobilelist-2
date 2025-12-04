@@ -1,4 +1,4 @@
-// firebase-config.js - 更新版本
+// firebase-config.js - 简化为配置对象
 const firebaseConfig = {
     apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
     authDomain: "karaoke-customizer.firebaseapp.com",
@@ -9,8 +9,7 @@ const firebaseConfig = {
     measurementId: "G-D791D33Y6R"
 };
 
-// 导出配置给主应用
-window.FIREBASE_CONFIG = firebaseConfig;
-
-// 管理员密码配置
-window.ADMIN_PASSWORD = window.ADMIN_PASSWORD || "82030901";
+// 保持向后兼容的函数
+function getFirebaseConfig() {
+    return firebaseConfig;
+}
