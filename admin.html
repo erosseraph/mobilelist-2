@@ -518,12 +518,22 @@
 </head>
 <body>
     <!-- 登录界面 -->
-    <div class="login-container" id="login-container">
-        <h1 class="login-title">🎤 管理面板登录</h1>
-        <input type="password" class="login-input" id="admin-password" placeholder="请输入管理员密码" autocomplete="off">
-        <button class="login-btn" onclick="checkAdminPassword()">登录</button>
-        <div class="login-error" id="login-error">密码错误，请重试</div>
+<div class="login-container" id="login-container">
+    <h1 class="login-title">🎤 管理面板登录</h1>
+    <input type="password" class="login-input" id="admin-password" 
+           placeholder="请输入管理员密码" autocomplete="off">
+    <button class="login-btn" onclick="checkAdminPassword()">登录</button>
+    
+    <!-- 添加返回主页按钮 -->
+    <div style="margin-top: 20px;">
+        <button class="login-btn" onclick="returnToHomePage()" 
+                style="background: #6c757d; margin-top: 10px;">
+            返回主页
+        </button>
     </div>
+    
+    <div class="login-error" id="login-error">密码错误，请重试</div>
+</div>
 
     <!-- 主管理界面 -->
     <div class="admin-container" id="admin-container" style="display: none;">
