@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>定制你的专属歌厅 v2.2.0</title>
+    <title>定制你的专属歌厅 v2.2.3</title>
     
     <!-- PWA 配置 -->
     <meta name="theme-color" content="#1a2a6c">
@@ -175,7 +175,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        /* ==================== 点歌系统页面 ==================== */
+        /* ==================== 点歌系统页面 - 新Tabs布局 ==================== */
         #karaoke-page {
             display: flex;
             gap: 25px;
@@ -188,30 +188,117 @@
             }
         }
         
-        .songs-section {
-            flex: 2;
-            min-width: 300px;
+        /* 移动端Tabs布局 */
+        .karaoke-tabs {
+            display: none; /* 默认桌面端不显示 */
+        }
+        
+        .karaoke-desktop {
+            display: flex;
+            width: 100%;
+            gap: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .karaoke-desktop {
+                display: none; /* 移动端隐藏桌面布局 */
+            }
+            
+            .karaoke-tabs {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .tabs-header {
+                display: flex;
+                justify-content: center;
+                gap: 5px;
+                margin-bottom: 20px;
+                background: rgba(255, 255, 255, 0.08);
+                border-radius: 25px;
+                padding: 5px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                backdrop-filter: blur(10px);
+            }
+            
+            .tab-btn {
+                flex: 1;
+                background: transparent;
+                border: none;
+                color: rgba(255, 255, 255, 0.7);
+                padding: 12px 20px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 1rem;
+                transition: all 0.3s;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+            }
+            
+            .tab-btn.active {
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                font-weight: bold;
+                box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            }
+            
+            .tabs-content {
+                position: relative;
+                min-height: 500px;
+            }
+            
+            .tab-pane {
+                display: none;
+                animation: fadeIn 0.3s ease;
+            }
+            
+            .tab-pane.active {
+                display: block;
+            }
+        }
+        
+        /* 歌曲区域和歌单区域的基础样式 */
+        .songs-section, .playlist-section {
             background: rgba(255, 255, 255, 0.08);
             border-radius: 15px;
             padding: 25px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .songs-section {
+            flex: 2;
+            min-width: 300px;
         }
         
         .playlist-section {
             flex: 1;
             min-width: 300px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             flex-direction: column;
             max-height: 700px;
         }
         
-        /* 排行榜样式 */
+        /* 移动端歌单独立页面样式 */
+        @media (max-width: 768px) {
+            .playlist-section {
+                max-height: none;
+                height: auto;
+                min-height: 500px;
+            }
+            
+            .playlist-items {
+                max-height: 400px;
+            }
+        }
+        
+        /* ==================== 排行榜样式 ==================== */
         .charts-container {
             display: flex;
             gap: 10px;
@@ -236,7 +323,7 @@
             transform: translateY(-2px);
         }
         
-        /* 搜索框样式 */
+        /* ==================== 搜索框样式 ==================== */
         .search-container {
             display: flex;
             gap: 12px;
@@ -282,7 +369,7 @@
             transform: translateY(-2px);
         }
         
-        /* 歌曲列表样式 */
+        /* ==================== 歌曲列表样式 ==================== */
         .songs-container {
             max-height: 400px;
             overflow-y: auto;
@@ -429,7 +516,7 @@
             transform: none;
         }
         
-        /* 歌单样式 */
+        /* ==================== 歌单样式 ==================== */
         .playlist-header {
             display: flex;
             justify-content: space-between;
@@ -583,7 +670,7 @@
             opacity: 0.5;
         }
         
-        /* 价格推荐卡片 */
+        /* ==================== 价格推荐卡片 ==================== */
         .price-recommendation {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
             border-radius: 15px;
@@ -1081,37 +1168,6 @@
         .stat-card-label {
             font-size: 0.95rem;
             opacity: 0.8;
-        }
-        
-        /* 图表容器 */
-        .charts-container-orders {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        @media (max-width: 900px) {
-            .charts-container-orders {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        .chart-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .chart-card h3 {
-            margin-bottom: 20px;
-            font-size: 1.3rem;
-            text-align: center;
-            background: linear-gradient(135deg, #fff, #a0e7ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         
         /* 订单表格 */
@@ -2290,7 +2346,7 @@
         <nav class="navbar">
             <div class="logo">
                 🎤 定制你的专属歌厅
-                <span class="version">v2.2.0</span>
+                <span class="version">v2.2.3</span>
             </div>
             
             <div class="nav-buttons">
@@ -2327,90 +2383,200 @@
         
         <!-- 页面容器 -->
         <div class="page-container">
-            <!-- 点歌系统页面 -->
+            <!-- 点歌系统页面 - 新的Tabs布局 -->
             <div id="karaoke-page">
-                <div class="songs-section">
-                    <h3 style="margin-bottom: 20px; font-size: 1.5rem;">🎵 搜索和选择歌曲</h3>
-                    
-                    <div class="charts-container">
-                        <div class="chart-category active" data-category="chinese-pop">
-                            华语流行
+                <!-- 桌面端布局 -->
+                <div class="karaoke-desktop">
+                    <div class="songs-section">
+                        <h3 style="margin-bottom: 20px; font-size: 1.5rem;">🎵 搜索和选择歌曲</h3>
+                        
+                        <div class="charts-container">
+                            <div class="chart-category active" data-category="chinese-pop">
+                                华语流行
+                            </div>
+                            <div class="chart-category" data-category="western-pop">
+                                欧美流行
+                            </div>
+                            <div class="chart-category" data-category="chinese-dj">
+                                中文DJ
+                            </div>
+                            <div class="chart-category" data-category="chinese-artists">
+                                华语歌手
+                            </div>
+                            <div class="chart-category" data-category="western-artists">
+                                欧美歌手
+                            </div>
                         </div>
-                        <div class="chart-category" data-category="western-pop">
-                            欧美流行
+                        
+                        <div class="search-container">
+                            <input type="text" class="search-input" id="search-input" 
+                                   placeholder="搜索歌曲名称、歌手或专辑...">
+                            <button class="search-btn" id="search-btn">
+                                <span>🔍</span>
+                                <span>搜索</span>
+                            </button>
+                            <button class="clear-btn" id="clear-search-btn">
+                                <span>🗑️</span>
+                                <span>清空</span>
+                            </button>
                         </div>
-                        <div class="chart-category" data-category="chinese-dj">
-                            中文DJ
+                        
+                        <div class="songs-container" id="songs-container">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <div>正在加载歌曲...</div>
+                            </div>
                         </div>
-                        <div class="chart-category" data-category="chinese-artists">
-                            华语歌手
-                        </div>
-                        <div class="chart-category" data-category="western-artists">
-                            欧美歌手
-                        </div>
-                    </div>
-                    
-                    <div class="search-container">
-                        <input type="text" class="search-input" id="search-input" 
-                               placeholder="搜索歌曲名称、歌手或专辑...">
-                        <button class="search-btn" id="search-btn">
-                            <span>🔍</span>
-                            <span>搜索</span>
-                        </button>
-                        <button class="clear-btn" id="clear-search-btn">
-                            <span>🗑️</span>
-                            <span>清空</span>
-                        </button>
-                    </div>
-                    
-                    <div class="songs-container" id="songs-container">
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <div>正在加载歌曲...</div>
-                        </div>
-                    </div>
-                    
-                    <button class="load-more-btn" id="load-more-btn" style="display: none;">
-                        <span>⬇️</span>
-                        <span>加载更多歌曲</span>
-                    </button>
-                </div>
-                
-                <div class="playlist-section">
-                    <div class="playlist-header">
-                        <div class="playlist-count">
-                            <span>我的歌单</span>
-                            <span class="playlist-count-number" id="playlist-count">0</span>
-                        </div>
-                        <button class="submit-playlist-btn" id="submit-playlist-btn" disabled>
-                            <span>📤</span>
-                            <span>提交歌单</span>
+                        
+                        <button class="load-more-btn" id="load-more-btn" style="display: none;">
+                            <span>⬇️</span>
+                            <span>加载更多歌曲</span>
                         </button>
                     </div>
                     
-                    <div class="playlist-items" id="playlist-items">
-                        <div class="empty-playlist">
-                            <div class="empty-playlist-icon">🎵</div>
-                            <div class="empty-playlist-message">歌单为空</div>
-                            <div class="empty-playlist-submessage">
-                                请从左侧添加歌曲到歌单
+                    <div class="playlist-section">
+                        <div class="playlist-header">
+                            <div class="playlist-count">
+                                <span>我的歌单</span>
+                                <span class="playlist-count-number" id="playlist-count">0</span>
+                            </div>
+                            <button class="submit-playlist-btn" id="submit-playlist-btn" disabled>
+                                <span>📤</span>
+                                <span>提交歌单</span>
+                            </button>
+                        </div>
+                        
+                        <div class="playlist-items" id="playlist-items">
+                            <div class="empty-playlist">
+                                <div class="empty-playlist-icon">🎵</div>
+                                <div class="empty-playlist-message">歌单为空</div>
+                                <div class="empty-playlist-submessage">
+                                    请从左侧添加歌曲到歌单
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="price-recommendation" id="price-recommendation" style="display: none;">
+                            <h4>💰 价格推荐</h4>
+                            <div class="recommended-plan">
+                                <span class="plan-name" id="recommended-plan-name">基础版</span>
+                                <span class="plan-price" id="recommended-plan-price">RM 29</span>
+                            </div>
+                            <div class="shipping-cost">
+                                <span>配送费用</span>
+                                <span id="shipping-cost-text">RM 0 (西马免费)</span>
+                            </div>
+                            <div class="total-price">
+                                <span>总计金额</span>
+                                <span id="total-price-text">RM 29</span>
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- 移动端Tabs布局 -->
+                <div class="karaoke-tabs">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="find-songs">
+                            <span>🔍</span>
+                            <span>找歌曲</span>
+                        </button>
+                        <button class="tab-btn" data-tab="my-playlist">
+                            <span>🎵</span>
+                            <span>我的歌单</span>
+                            <span class="playlist-count-number-mobile" id="playlist-count-mobile">0</span>
+                        </button>
+                    </div>
                     
-                    <div class="price-recommendation" id="price-recommendation" style="display: none;">
-                        <h4>💰 价格推荐</h4>
-                        <div class="recommended-plan">
-                            <span class="plan-name" id="recommended-plan-name">基础版</span>
-                            <span class="plan-price" id="recommended-plan-price">RM 29</span>
+                    <div class="tabs-content">
+                        <!-- 找歌曲标签页 -->
+                        <div class="tab-pane active" id="find-songs-tab">
+                            <div class="songs-section">
+                                <div class="charts-container">
+                                    <div class="chart-category active" data-category="chinese-pop">
+                                        华语流行
+                                    </div>
+                                    <div class="chart-category" data-category="western-pop">
+                                        欧美流行
+                                    </div>
+                                    <div class="chart-category" data-category="chinese-dj">
+                                        中文DJ
+                                    </div>
+                                    <div class="chart-category" data-category="chinese-artists">
+                                        华语歌手
+                                    </div>
+                                    <div class="chart-category" data-category="western-artists">
+                                        欧美歌手
+                                    </div>
+                                </div>
+                                
+                                <div class="search-container">
+                                    <input type="text" class="search-input" id="search-input-mobile" 
+                                           placeholder="搜索歌曲名称、歌手或专辑...">
+                                    <button class="search-btn" id="search-btn-mobile">
+                                        <span>🔍</span>
+                                        <span>搜索</span>
+                                    </button>
+                                    <button class="clear-btn" id="clear-search-btn-mobile">
+                                        <span>🗑️</span>
+                                        <span>清空</span>
+                                    </button>
+                                </div>
+                                
+                                <div class="songs-container" id="songs-container-mobile">
+                                    <div class="loading">
+                                        <div class="loading-spinner"></div>
+                                        <div>正在加载歌曲...</div>
+                                    </div>
+                                </div>
+                                
+                                <button class="load-more-btn" id="load-more-btn-mobile" style="display: none;">
+                                    <span>⬇️</span>
+                                    <span>加载更多歌曲</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="shipping-cost">
-                            <span>配送费用</span>
-                            <span id="shipping-cost-text">RM 0 (西马免费)</span>
-                        </div>
-                        <div class="total-price">
-                            <span>总计金额</span>
-                            <span id="total-price-text">RM 29</span>
+                        
+                        <!-- 我的歌单标签页 -->
+                        <div class="tab-pane" id="my-playlist-tab">
+                            <div class="playlist-section">
+                                <div class="playlist-header">
+                                    <div class="playlist-count">
+                                        <span>我的歌单</span>
+                                        <span class="playlist-count-number" id="playlist-count-tab">0</span>
+                                    </div>
+                                    <button class="submit-playlist-btn" id="submit-playlist-btn-mobile" disabled>
+                                        <span>📤</span>
+                                        <span>提交歌单</span>
+                                    </button>
+                                </div>
+                                
+                                <div class="playlist-items" id="playlist-items-mobile">
+                                    <div class="empty-playlist">
+                                        <div class="empty-playlist-icon">🎵</div>
+                                        <div class="empty-playlist-message">歌单为空</div>
+                                        <div class="empty-playlist-submessage">
+                                            请在"找歌曲"标签页添加歌曲
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="price-recommendation" id="price-recommendation-mobile" style="display: none;">
+                                    <h4>💰 价格推荐</h4>
+                                    <div class="recommended-plan">
+                                        <span class="plan-name" id="recommended-plan-name-mobile">基础版</span>
+                                        <span class="plan-price" id="recommended-plan-price-mobile">RM 29</span>
+                                    </div>
+                                    <div class="shipping-cost">
+                                        <span>配送费用</span>
+                                        <span id="shipping-cost-text-mobile">RM 0 (西马免费)</span>
+                                    </div>
+                                    <div class="total-price">
+                                        <span>总计金额</span>
+                                        <span id="total-price-text-mobile">RM 29</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2742,17 +2908,8 @@
                     </div>
                 </div>
                 
-                <!-- 图表容器 -->
-                <div class="charts-container-orders" id="charts-container">
-                    <div class="chart-card">
-                        <h3>订单状态分布</h3>
-                        <canvas id="orders-status-chart"></canvas>
-                    </div>
-                    <div class="chart-card">
-                        <h3>收入统计</h3>
-                        <canvas id="revenue-chart"></canvas>
-                    </div>
-                </div>
+                <!-- 已移除图表容器 -->
+                <!-- 原charts-container-orders区域已删除 -->
                 
                 <!-- 分页控件 -->
                 <div class="pagination-container" id="orders-pagination">
@@ -2801,21 +2958,26 @@
 
     <script>
         // ============================================
-        // 定制歌厅系统 v2.2.0 - JavaScript代码
+        // 定制歌厅系统 v2.2.3 - JavaScript代码
         // ============================================
         
+        // ==================== 应用配置 ====================
+        const APP_CONFIG = {
+            name: "定制你的专属歌厅",
+            version: "2.2.3",
+            environment: "production"
+        };
+
         // ==================== Firebase 配置 ====================
-        function getFirebaseConfig() {
-            return {
-                apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
-                authDomain: "karaoke-customizer.firebaseapp.com",
-                projectId: "karaoke-customizer",
-                storageBucket: "karaoke-customizer.firebasestorage.app",
-                messagingSenderId: "593643512892",
-                appId: "1:593643512892:web:c21ec4ce7c2d286fed4f39",
-                measurementId: "G-D791D33Y6R"
-            };
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMn7EOOUDpIGXzA8EhPBtLWw7BwyU2Rdc",
+            authDomain: "karaoke-customizer.firebaseapp.com",
+            projectId: "karaoke-customizer",
+            storageBucket: "karaoke-customizer.firebasestorage.app",
+            messagingSenderId: "593643512892",
+            appId: "1:593643512892:web:c21ec4ce7c2d286fed4f39",
+            measurementId: "G-D791D33Y6R"
+        };
 
         // ==================== 应用状态变量 ====================
         let currentUser = null;
@@ -2830,17 +2992,19 @@
         let isAdmin = false;
         let firebaseApp, auth, firestore, analytics;
         
-        // 图表实例
-        let ordersStatusChart = null;
-        let revenueChart = null;
-        
         // 分页管理器实例
         let ordersPagination = null;
         let myOrdersPagination = null;
+        
+        // 音频播放状态
+        let currentAudio = null;
+        let currentlyPlayingId = null;
 
         // ==================== 页面初始化 ====================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 初始化定制歌厅系统 v2.2.0...');
+            console.log('🚀 初始化定制歌厅系统 v2.2.3...');
+            console.log(`应用名称: ${APP_CONFIG.name}`);
+            console.log(`环境: ${APP_CONFIG.environment}`);
             
             // 初始化Firebase
             initializeFirebase();
@@ -2850,6 +3014,9 @@
             
             // 初始化事件监听
             setupEventListeners();
+            
+            // 初始化移动端Tabs
+            initMobileTabs();
             
             // 初始化分页管理器
             ordersPagination = new PaginationManager('#orders-table', 20);
@@ -2862,8 +3029,7 @@
         // ==================== Firebase 初始化 ====================
         function initializeFirebase() {
             try {
-                const firebaseConfig = getFirebaseConfig();
-                console.log('🔧 Firebase 配置:', firebaseConfig);
+                console.log('🔧 Firebase 初始化中...', firebaseConfig);
                 
                 firebaseApp = firebase.initializeApp(firebaseConfig);
                 auth = firebaseApp.auth();
@@ -2939,6 +3105,41 @@
             }
         }
 
+        // ==================== 移动端Tabs初始化 ====================
+        function initMobileTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (!isMobile) return;
+            
+            // 显示移动端布局，隐藏桌面端布局
+            document.querySelector('.karaoke-desktop').style.display = 'none';
+            document.querySelector('.karaoke-tabs').style.display = 'flex';
+            
+            // 添加标签切换事件
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tabId = this.dataset.tab;
+                    
+                    // 更新按钮状态
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 更新标签页内容
+                    document.querySelectorAll('.tab-pane').forEach(pane => {
+                        pane.classList.remove('active');
+                    });
+                    
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                    
+                    // 如果是歌单标签，更新显示
+                    if (tabId === 'my-playlist') {
+                        updateMobilePlaylistDisplay();
+                    }
+                });
+            });
+        }
+
         // ==================== 页面导航功能 ====================
         function initPageNavigation() {
             const karaokeNav = document.getElementById('karaoke-nav');
@@ -3009,7 +3210,7 @@
 
         // ==================== 事件监听器设置 ====================
         function setupEventListeners() {
-            // 排行榜点击事件
+            // 排行榜点击事件（桌面端）
             document.querySelectorAll('.chart-category').forEach(chart => {
                 chart.addEventListener('click', function() {
                     const category = this.dataset.category;
@@ -3021,10 +3222,13 @@
                         c.classList.remove('active');
                     });
                     this.classList.add('active');
+                    
+                    // 如果是移动端，也更新移动端的活跃状态
+                    updateMobileChartActiveState(category);
                 });
             });
             
-            // 搜索功能
+            // 搜索功能（桌面端）
             const searchBtn = document.getElementById('search-btn');
             const searchInput = document.getElementById('search-input');
             
@@ -3035,17 +3239,53 @@
                 }
             });
             
-            // 清空搜索
+            // 清空搜索（桌面端）
             document.getElementById('clear-search-btn').addEventListener('click', function() {
                 document.getElementById('search-input').value = '';
                 loadChartOptimized(currentChartCategory);
             });
             
-            // 加载更多歌曲
+            // 搜索功能（移动端）
+            const searchBtnMobile = document.getElementById('search-btn-mobile');
+            const searchInputMobile = document.getElementById('search-input-mobile');
+            
+            searchBtnMobile.addEventListener('click', performSearchMobile);
+            searchInputMobile.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearchMobile();
+                }
+            });
+            
+            // 清空搜索（移动端）
+            document.getElementById('clear-search-btn-mobile').addEventListener('click', function() {
+                document.getElementById('search-input-mobile').value = '';
+                loadChartOptimized(currentChartCategory);
+            });
+            
+            // 加载更多歌曲（桌面端）
             document.getElementById('load-more-btn').addEventListener('click', loadMoreSongs);
             
-            // 提交歌单按钮
+            // 加载更多歌曲（移动端）
+            document.getElementById('load-more-btn-mobile').addEventListener('click', loadMoreSongsMobile);
+            
+            // 提交歌单按钮（桌面端）
             document.getElementById('submit-playlist-btn').addEventListener('click', function() {
+                if (playlist.length === 0) {
+                    showMessage('歌单为空，请先添加歌曲', 'warning');
+                    return;
+                }
+                
+                if (!currentUser) {
+                    showMessage('请先登录以提交订单', 'warning');
+                    document.getElementById('login-modal').style.display = 'flex';
+                    return;
+                }
+                
+                showSubmitPlaylistModal();
+            });
+            
+            // 提交歌单按钮（移动端）
+            document.getElementById('submit-playlist-btn-mobile').addEventListener('click', function() {
                 if (playlist.length === 0) {
                     showMessage('歌单为空，请先添加歌曲', 'warning');
                     return;
@@ -3185,6 +3425,240 @@
                     if (event.target === modal) {
                         modal.style.display = 'none';
                     }
+                });
+            });
+            
+            // 窗口大小变化时重新初始化布局
+            window.addEventListener('resize', function() {
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    document.querySelector('.karaoke-desktop').style.display = 'none';
+                    document.querySelector('.karaoke-tabs').style.display = 'flex';
+                } else {
+                    document.querySelector('.karaoke-desktop').style.display = 'flex';
+                    document.querySelector('.karaoke-tabs').style.display = 'none';
+                }
+            });
+        }
+        
+        // ==================== 移动端相关功能 ====================
+        function updateMobileChartActiveState(category) {
+            // 更新移动端的活跃状态
+            const mobileCharts = document.querySelectorAll('#find-songs-tab .chart-category');
+            mobileCharts.forEach(chart => {
+                if (chart.dataset.category === category) {
+                    chart.classList.add('active');
+                } else {
+                    chart.classList.remove('active');
+                }
+            });
+        }
+        
+        function updateMobilePlaylistDisplay() {
+            // 更新移动端的歌单显示
+            const playlistCountMobile = document.getElementById('playlist-count-mobile');
+            const playlistCountTab = document.getElementById('playlist-count-tab');
+            
+            if (playlistCountMobile) playlistCountMobile.textContent = playlist.length;
+            if (playlistCountTab) playlistCountTab.textContent = playlist.length;
+            
+            // 更新移动端歌单列表
+            renderMobilePlaylist();
+            
+            // 更新移动端价格推荐
+            updateMobilePriceRecommendation();
+        }
+        
+        function renderMobilePlaylist() {
+            const playlistContainer = document.getElementById('playlist-items-mobile');
+            const submitBtn = document.getElementById('submit-playlist-btn-mobile');
+            const priceRecommendation = document.getElementById('price-recommendation-mobile');
+            
+            if (playlist.length === 0) {
+                playlistContainer.innerHTML = `
+                    <div class="empty-playlist">
+                        <div class="empty-playlist-icon">🎵</div>
+                        <div class="empty-playlist-message">歌单为空</div>
+                        <div class="empty-playlist-submessage">
+                            请在"找歌曲"标签页添加歌曲
+                        </div>
+                    </div>
+                `;
+                priceRecommendation.style.display = 'none';
+                submitBtn.disabled = true;
+                return;
+            }
+            
+            playlistContainer.innerHTML = '';
+            priceRecommendation.style.display = 'block';
+            submitBtn.disabled = false;
+            
+            playlist.forEach((song, index) => {
+                const playlistItem = document.createElement('div');
+                playlistItem.className = 'playlist-item';
+                playlistItem.innerHTML = `
+                    <div class="playlist-item-content">
+                        <div class="song-number">${index + 1}</div>
+                        <div class="playlist-item-info">
+                            <div class="playlist-item-title">${song.title}</div>
+                            <div class="playlist-item-artist">${song.artist}</div>
+                        </div>
+                    </div>
+                    <button class="remove-btn" data-index="${index}">×</button>
+                `;
+                playlistContainer.appendChild(playlistItem);
+            });
+            
+            // 添加删除按钮事件
+            document.querySelectorAll('#playlist-items-mobile .remove-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    removeSongFromPlaylist(index);
+                });
+            });
+        }
+        
+        function updateMobilePriceRecommendation() {
+            if (playlist.length === 0) return;
+            
+            const songCount = playlist.length;
+            const recommendedPlan = getRecommendedPlan(songCount);
+            const shippingRegion = document.querySelector('input[name="shipping-region"]:checked')?.value || 'west';
+            const shippingCost = shippingRegion === 'east' ? 8 : 0;
+            const totalPrice = (recommendedPlan.isCustom ? recommendedPlan.price : recommendedPlan.price) + shippingCost;
+            
+            // 更新移动端显示
+            const planNameEl = document.getElementById('recommended-plan-name-mobile');
+            const planPriceEl = document.getElementById('recommended-plan-price-mobile');
+            const shippingCostEl = document.getElementById('shipping-cost-text-mobile');
+            const totalPriceEl = document.getElementById('total-price-text-mobile');
+            
+            if (planNameEl) planNameEl.textContent = recommendedPlan.name;
+            if (planPriceEl) planPriceEl.textContent = 
+                recommendedPlan.isCustom ? `RM ${recommendedPlan.price.toFixed(2)}` : `RM ${recommendedPlan.price}`;
+            if (shippingCostEl) shippingCostEl.textContent = 
+                shippingCost === 0 ? 'RM 0 (西马免费)' : `RM ${shippingCost}`;
+            if (totalPriceEl) totalPriceEl.textContent = 
+                recommendedPlan.isCustom ? `RM ${totalPrice.toFixed(2)}` : `RM ${totalPrice}`;
+        }
+        
+        function performSearchMobile() {
+            const searchInput = document.getElementById('search-input-mobile');
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                showMessage('请输入搜索关键词', 'warning');
+                return;
+            }
+            
+            const songsContainer = document.getElementById('songs-container-mobile');
+            songsContainer.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>搜索中...</div></div>';
+            
+            currentSearchTerm = query;
+            currentSearchOffset = 0;
+            
+            searchMusic(query, 50, 0).then(songs => {
+                currentSongs = songs;
+                renderMobileSongs(songs);
+                
+                if (songs.length === 0) {
+                    showMessage('未找到相关歌曲', 'info');
+                } else {
+                    showMessage(`找到 ${songs.length} 首相关歌曲`, 'success');
+                    
+                    if (songs.length >= 50) {
+                        document.getElementById('load-more-btn-mobile').style.display = 'flex';
+                    }
+                }
+            }).catch(error => {
+                console.error('移动端搜索失败:', error);
+                songsContainer.innerHTML = `
+                    <div class="error">
+                        <div class="error-icon">❌</div>
+                        <div>搜索失败</div>
+                        <div class="empty-playlist-submessage">请检查网络连接</div>
+                    </div>
+                `;
+            });
+        }
+        
+        function loadMoreSongsMobile() {
+            const loadMoreBtn = document.getElementById('load-more-btn-mobile');
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.innerHTML = '<div class="loading-spinner" style="width: 20px; height: 20px;"></div><span>加载中...</span>';
+            
+            currentSearchOffset += 50;
+            
+            searchMusic(currentSearchTerm || getSearchConfig(currentChartCategory).terms[0], 50, currentSearchOffset)
+                .then(moreSongs => {
+                    if (moreSongs.length > 0) {
+                        currentSongs = [...currentSongs, ...moreSongs];
+                        renderMobileSongs(currentSongs);
+                        
+                        if (moreSongs.length >= 50) {
+                            loadMoreBtn.disabled = false;
+                            loadMoreBtn.innerHTML = '<span>⬇️</span><span>加载更多歌曲</span>';
+                        } else {
+                            loadMoreBtn.style.display = 'none';
+                        }
+                    } else {
+                        loadMoreBtn.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('移动端加载更多失败:', error);
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.innerHTML = '<span>⬇️</span><span>加载更多歌曲</span>';
+                    showMessage('加载失败，请重试', 'error');
+                });
+        }
+        
+        function renderMobileSongs(songs) {
+            const songsContainer = document.getElementById('songs-container-mobile');
+            
+            if (currentSearchOffset === 0) {
+                songsContainer.innerHTML = '';
+            }
+            
+            songs.forEach(song => {
+                const songElement = document.createElement('div');
+                songElement.className = 'song';
+                songElement.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                        <div class="song-album">${song.album}</div>
+                    </div>
+                    <div class="song-controls">
+                        ${song.previewUrl ? `
+                            <button class="preview-btn" data-url="${song.previewUrl}" data-id="${song.id}">
+                                <span>▶️</span>
+                                <span>试听</span>
+                            </button>
+                        ` : ''}
+                        <button class="add-btn" data-id="${song.id}">
+                            <span>➕</span>
+                            <span>添加</span>
+                        </button>
+                    </div>
+                `;
+                songsContainer.appendChild(songElement);
+            });
+            
+            // 添加歌曲点击事件
+            document.querySelectorAll('#songs-container-mobile .add-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const songId = this.dataset.id;
+                    addSongToPlaylist(songId);
+                });
+            });
+            
+            // 添加试听按钮事件
+            document.querySelectorAll('#songs-container-mobile .preview-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const previewUrl = this.dataset.url;
+                    const songId = this.dataset.id;
+                    previewSong(previewUrl, songId);
                 });
             });
         }
@@ -3518,7 +3992,7 @@
             const shippingCost = shippingRegion === 'east' ? 8 : 0;
             const totalPrice = (recommendedPlan.isCustom ? recommendedPlan.price : recommendedPlan.price) + shippingCost;
             
-            // 更新模态框显示
+            // 更新桌面端显示
             document.getElementById('recommended-plan-name').textContent = recommendedPlan.name;
             document.getElementById('recommended-plan-price').textContent = 
                 recommendedPlan.isCustom ? `RM ${recommendedPlan.price.toFixed(2)}` : `RM ${recommendedPlan.price}`;
@@ -3526,6 +4000,9 @@
                 shippingCost === 0 ? 'RM 0 (西马免费)' : `RM ${shippingCost}`;
             document.getElementById('total-price-text').textContent = 
                 recommendedPlan.isCustom ? `RM ${totalPrice.toFixed(2)}` : `RM ${totalPrice}`;
+            
+            // 更新移动端显示
+            updateMobilePriceRecommendation();
             
             // 更新表单中的价格显示
             document.getElementById('modal-base-price').textContent = 
@@ -3633,6 +4110,7 @@
                 playlist = [];
                 renderPlaylist();
                 updatePlaylistCount();
+                updateMobilePlaylistDisplay();
                 
                 // 重置表单
                 document.getElementById('submit-playlist-form').reset();
@@ -3690,7 +4168,7 @@
             
             clearFilter() {
                 this.filteredItems = [...this.allItems];
-                this.totalItems = this.filteredItems.length;
+                this.totalItems = this.allItems.length;
                 this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
                 this.currentPage = 1;
                 
@@ -4042,9 +4520,8 @@
                 // 初始化分页
                 ordersPagination.init(orders);
                 
-                // 更新统计和图表
+                // 更新统计
                 updateStatistics();
-                updateCharts();
 
             } catch (error) {
                 console.error('❌ 加载订单失败:', error);
@@ -4929,7 +5406,7 @@
             }
         }
 
-        // ==================== 统计和图表功能 ====================
+        // ==================== 统计功能 ====================
         function updateStatistics() {
             const totalOrders = orders.length;
             const totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.totalAmount) || 0), 0);
@@ -4940,185 +5417,6 @@
             document.getElementById('stat-total-revenue').textContent = `RM ${totalRevenue.toFixed(2)}`;
             document.getElementById('stat-avg-order').textContent = `RM ${avgOrderValue}`;
             document.getElementById('stat-total-songs').textContent = totalSongs;
-        }
-        
-        function updateCharts() {
-            updateOrdersStatusChart();
-            updateRevenueChart();
-        }
-        
-        function updateOrdersStatusChart() {
-            const ctx = document.getElementById('orders-status-chart').getContext('2d');
-            
-            // 统计各状态订单数量
-            const statusCounts = {
-                'pending': 0,
-                'paid': 0,
-                'shipped': 0,
-                'completed': 0,
-                'cancelled': 0,
-                'deleted': 0
-            };
-            
-            orders.forEach(order => {
-                if (statusCounts.hasOwnProperty(order.status)) {
-                    statusCounts[order.status]++;
-                }
-            });
-            
-            // 准备数据
-            const labels = ['待付款', '已付款', '已发货', '已完成', '已取消', '已删除'];
-            const data = [
-                statusCounts.pending,
-                statusCounts.paid,
-                statusCounts.shipped,
-                statusCounts.completed,
-                statusCounts.cancelled,
-                statusCounts.deleted
-            ];
-            const backgroundColors = [
-                'rgba(241, 196, 15, 0.8)',
-                'rgba(46, 204, 113, 0.8)',
-                'rgba(52, 152, 219, 0.8)',
-                'rgba(39, 174, 96, 0.8)',
-                'rgba(231, 76, 60, 0.8)',
-                'rgba(149, 165, 166, 0.8)'
-            ];
-            const borderColors = [
-                'rgba(241, 196, 15, 1)',
-                'rgba(46, 204, 113, 1)',
-                'rgba(52, 152, 219, 1)',
-                'rgba(39, 174, 96, 1)',
-                'rgba(231, 76, 60, 1)',
-                'rgba(149, 165, 166, 1)'
-            ];
-            
-            // 销毁旧图表实例
-            if (ordersStatusChart) {
-                ordersStatusChart.destroy();
-            }
-            
-            // 创建新图表
-            ordersStatusChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
-                                    return `${label}: ${value} 单 (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        function updateRevenueChart() {
-            const ctx = document.getElementById('revenue-chart').getContext('2d');
-            
-            // 按套餐类型统计收入
-            const revenueByPlan = {};
-            orders.forEach(order => {
-                if (order.status !== 'cancelled' && order.status !== 'deleted') {
-                    const plan = order.plan || '其他';
-                    const amount = parseFloat(order.totalAmount) || 0;
-                    revenueByPlan[plan] = (revenueByPlan[plan] || 0) + amount;
-                }
-            });
-            
-            // 准备数据
-            const labels = Object.keys(revenueByPlan);
-            const data = Object.values(revenueByPlan);
-            
-            // 生成渐变色
-            const backgroundColors = labels.map((_, index) => {
-                const hue = (index * 137) % 360; // 使用黄金角度近似值
-                return `hsla(${hue}, 70%, 60%, 0.8)`;
-            });
-            
-            // 销毁旧图表实例
-            if (revenueChart) {
-                revenueChart.destroy();
-            }
-            
-            // 创建新图表
-            revenueChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '收入 (RM)',
-                        data: data,
-                        backgroundColor: backgroundColors,
-                        borderColor: backgroundColors.map(color => color.replace('0.8', '1')),
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                callback: function(value) {
-                                    return 'RM ' + value;
-                                }
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.8)'
-                            },
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `收入: RM ${context.raw.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
         }
 
         // ==================== Excel导出功能 ====================
@@ -5229,16 +5527,16 @@
         function getSearchConfig(category) {
             const configs = {
                 'chinese-pop': {
-                    terms: ['周杰伦', '林俊杰', '邓紫棋', '华语流行', '中文歌曲'],
+                    terms: ['popular chinese songs', 'mandarin pop', '华语热门歌曲', '中文流行音乐'],
                     country: 'CN',
                     description: '热门华语歌曲榜',
-                    artists: ['周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿']
+                    artists: []
                 },
                 'western-pop': {
-                    terms: ['taylor swift', 'ed sheeran', 'ariana grande', 'pop music'],
+                    terms: ['pop music', 'top songs', 'hits', 'billboard'],
                     country: 'US',
                     description: '欧美流行热歌',
-                    artists: ['Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish', 'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars']
+                    artists: []
                 },
                 'chinese-dj': {
                     terms: ['中文DJ', '电子舞曲', 'remix', '电音'],
@@ -5248,11 +5546,28 @@
                 },
                 'chinese-artists': {
                     type: 'artists',
-                    artists: ['周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', '王力宏', '陈奕迅', '张惠妹', '蔡依林', '孙燕姿']
+                    artists: [
+                        '周杰伦', '林俊杰', '邓紫棋', '薛之谦', '李荣浩', '王力宏', '陈奕迅', '张惠妹', 
+                        '蔡依林', '孙燕姿', '五月天', 'S.H.E', 'Beyond', '张国荣', '张学友', '刘德华', 
+                        '郭富城', '黎明', '王菲', '那英', '杨丞琳', '张韶涵', '王心凌', '蔡健雅', '田馥甄', 
+                        '林忆莲', '许嵩', '汪苏泷', '徐佳莹', '吴青峰', '苏打绿', '八三夭', '告五人', 
+                        '蔡徐坤', 'TFBOYS', '华晨宇', '毛不易', '周深', '张杰', '李宇春', '张靓颖', 
+                        '郁可唯', '黄龄', '胡彦斌', '许巍', '朴树', '李健', '陈粒', '花粥', '房东的猫'
+                    ]
                 },
                 'western-artists': {
                     type: 'artists',
-                    artists: ['Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish', 'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars']
+                    artists: [
+                        'Taylor Swift', 'Ed Sheeran', 'Ariana Grande', 'Justin Bieber', 'Billie Eilish', 
+                        'Drake', 'The Weeknd', 'Dua Lipa', 'Post Malone', 'Bruno Mars', 'Maroon 5', 
+                        'Coldplay', 'Imagine Dragons', 'Lady Gaga', 'Rihanna', 'Beyoncé', 'Katy Perry', 
+                        'Shawn Mendes', 'Harry Styles', 'Lewis Capaldi', 'Sam Smith', 'Adele', 
+                        'Michael Jackson', 'Madonna', 'Elton John', 'Queen', 'The Beatles', 
+                        'Linkin Park', 'Green Day', 'Eminem', 'Kanye West', 'Jay-Z', 'Snoop Dogg', 
+                        '50 Cent', 'Rihanna', 'Beyoncé', 'Katy Perry', 'Lady Gaga', 'Britney Spears', 
+                        'Christina Aguilera', 'Pink', 'Avril Lavigne', 'Shakira', 'Jennifer Lopez', 
+                        'Nicki Minaj', 'Cardi B', 'Megan Thee Stallion', 'Doja Cat', 'Lizzo', 'Halsey'
+                    ]
                 }
             };
             
@@ -5262,6 +5577,11 @@
         async function getITunesCharts(category) {
             try {
                 const config = getSearchConfig(category);
+                
+                if (config.type === 'artists') {
+                    return [];
+                }
+                
                 const searchTerm = config.terms[0] || 'music';
                 const url = `https://itunes.apple.com/search?term=${encodeURIComponent(searchTerm)}&entity=musicTrack&limit=50&country=${config.country}&lang=zh_cn`;
                 
@@ -5323,6 +5643,8 @@
                 
                 if (config.type === 'artists') {
                     renderArtistsList(config.artists);
+                    // 如果是移动端，也更新移动端显示
+                    renderMobileArtistsList(config.artists);
                     return;
                 }
                 
@@ -5375,11 +5697,27 @@
                             <div class="empty-playlist-submessage">请尝试其他分类</div>
                         </div>
                     `;
+                    // 如果是移动端，也更新移动端显示
+                    const mobileContainer = document.getElementById('songs-container-mobile');
+                    if (mobileContainer) {
+                        mobileContainer.innerHTML = `
+                            <div class="error">
+                                <div class="error-icon">🎵</div>
+                                <div>未找到相关歌曲</div>
+                                <div class="empty-playlist-submessage">请尝试其他分类</div>
+                            </div>
+                        `;
+                    }
                     return;
                 }
                 
                 currentSongs = songs;
                 renderSongs(currentSongs);
+                
+                // 如果是移动端，也更新移动端显示
+                if (document.getElementById('songs-container-mobile')) {
+                    renderMobileSongs(currentSongs);
+                }
                 
                 showMessage(`成功加载 ${songs.length} 首歌曲`, 'success');
                 
@@ -5392,6 +5730,17 @@
                         <div class="empty-playlist-submessage">请检查网络连接</div>
                     </div>
                 `;
+                // 如果是移动端，也更新移动端显示
+                const mobileContainer = document.getElementById('songs-container-mobile');
+                if (mobileContainer) {
+                    mobileContainer.innerHTML = `
+                        <div class="error">
+                            <div class="error-icon">❌</div>
+                            <div>加载失败</div>
+                            <div class="empty-playlist-submessage">请检查网络连接</div>
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -5500,6 +5849,41 @@
                 });
             });
         }
+        
+        function renderMobileArtistsList(artists) {
+            const songsContainer = document.getElementById('songs-container-mobile');
+            if (!songsContainer) return;
+            
+            songsContainer.innerHTML = '';
+            
+            document.getElementById('load-more-btn-mobile').style.display = 'none';
+            
+            artists.forEach(artist => {
+                const artistElement = document.createElement('div');
+                artistElement.className = 'song';
+                artistElement.innerHTML = `
+                    <div class="song-info">
+                        <div class="song-title">${artist}</div>
+                        <div class="song-artist">歌手</div>
+                    </div>
+                    <div class="song-controls">
+                        <button class="add-btn" data-artist="${artist}">
+                            <span>🔍</span>
+                            <span>搜索歌曲</span>
+                        </button>
+                    </div>
+                `;
+                songsContainer.appendChild(artistElement);
+            });
+            
+            document.querySelectorAll('#songs-container-mobile .add-btn[data-artist]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const artist = this.dataset.artist;
+                    document.getElementById('search-input-mobile').value = artist;
+                    performSearchMobile();
+                });
+            });
+        }
 
         function renderSongs(songs) {
             const songsContainer = document.getElementById('songs-container');
@@ -5552,9 +5936,6 @@
             });
         }
         
-        let currentAudio = null;
-        let currentlyPlayingId = null;
-
         function previewSong(previewUrl, songId) {
             // 如果正在播放同一首歌，停止播放
             if (currentlyPlayingId === songId && currentAudio && !currentAudio.paused) {
@@ -5625,6 +6006,7 @@
                 playlist.push(song);
                 renderPlaylist();
                 updatePlaylistCount();
+                updateMobilePlaylistDisplay();
                 
                 showMessage(`已添加 "${song.title}" 到歌单`, 'success');
             } else if (playlist.some(s => s.id == songId)) {
@@ -5690,6 +6072,7 @@
                 playlist.splice(index, 1);
                 renderPlaylist();
                 updatePlaylistCount();
+                updateMobilePlaylistDisplay();
                 showMessage(`已从歌单移除 "${songTitle}"`, 'success');
             }
         }
@@ -5701,6 +6084,13 @@
             // 更新提交按钮状态
             const submitBtn = document.getElementById('submit-playlist-btn');
             submitBtn.disabled = playlist.length === 0;
+            
+            // 更新移动端计数
+            const playlistCountMobile = document.getElementById('playlist-count-mobile');
+            const playlistCountTab = document.getElementById('playlist-count-tab');
+            
+            if (playlistCountMobile) playlistCountMobile.textContent = playlist.length;
+            if (playlistCountTab) playlistCountTab.textContent = playlist.length;
         }
 
         // ==================== 搜索功能 ====================
