@@ -4433,35 +4433,7 @@
                 myOrdersTableBody.appendChild(row);
             });
 
-            // ============= 在这里添加事件绑定代码 =============
-    // 方案1：最简单的修复（立即生效）
-    setTimeout(() => {
-        document.querySelectorAll('#my-orders-table .view-btn').forEach(btn => {
-            // 移除所有现有事件（防止重复绑定）
-            btn.replaceWith(btn.cloneNode(true));
-        });
-        
-        // 重新绑定事件
-        document.querySelectorAll('#my-orders-table .view-btn').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const orderId = this.dataset.orderId;
-                console.log('🔍 查看按钮点击，订单ID:', orderId);
-                if (orderId) {
-                    showOrderDetails(orderId);
-                } else {
-                    console.error('❌ 未找到订单ID');
-                    showMessage('无法查看订单详情', 'error');
-                }
-            });
-        });
-        
-        console.log('✅ 事件绑定完成，按钮数量:', 
-            document.querySelectorAll('#my-orders-table .view-btn').length);
-    }, 0);
-    // ============= 事件绑定代码结束 =============
-}
+           
             // 添加查看详情事件
             document.querySelectorAll('#my-orders-table .view-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
