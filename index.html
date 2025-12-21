@@ -3026,6 +3026,18 @@
             loadChartOptimized('chinese-pop');
         });
 
+        // 事件委托：在表格容器上绑定单个监听器
+document.getElementById('my-orders-table-body').addEventListener('click', function(e) {
+    // 检查点击的是否是查看按钮
+    const viewBtn = e.target.closest('.view-btn');
+    if (viewBtn) {
+        const orderId = viewBtn.dataset.orderId;
+        if (orderId) {
+            showOrderDetails(orderId);
+        }
+    }
+});
+
         // ==================== Firebase 初始化 ====================
         function initializeFirebase() {
             try {
@@ -4185,7 +4197,7 @@
                 if (this.tableSelector === '#orders-table') {
                     renderOrdersTable(pageItems);
                 } else if (this.tableSelector === '#my-orders-table') {
-                    renderMyOrdersTable(pageItems);
+                   (pageItems);
                 }
             }
             
