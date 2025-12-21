@@ -3026,18 +3026,7 @@
             loadChartOptimized('chinese-pop');
         });
 
-        // 事件委托：在表格容器上绑定单个监听器
-document.getElementById('my-orders-table-body').addEventListener('click', function(e) {
-    // 检查点击的是否是查看按钮
-    const viewBtn = e.target.closest('.view-btn');
-    if (viewBtn) {
-        const orderId = viewBtn.dataset.orderId;
-        if (orderId) {
-            showOrderDetails(orderId);
-        }
-    }
-});
-
+       
         // ==================== Firebase 初始化 ====================
         function initializeFirebase() {
             try {
@@ -3387,6 +3376,21 @@ document.getElementById('my-orders-table-body').addEventListener('click', functi
                 const filterPanel = document.getElementById('my-orders-filter-panel');
                 filterPanel.classList.toggle('show');
             });
+
+            // === 在这里添加事件委托代码 ===
+// 事件委托：在我的订单页面容器上绑定监听器
+document.getElementById('my-orders-page').addEventListener('click', function(e) {
+    // 只处理查看按钮点击
+    const viewBtn = e.target.closest('.view-btn');
+    if (viewBtn && viewBtn.closest('#my-orders-table-body')) {
+        const orderId = viewBtn.dataset.orderId;
+        if (orderId) {
+            e.preventDefault();
+            e.stopPropagation();
+            showOrderDetails(orderId);
+        }
+    }
+});
             
             // 筛选功能
             document.getElementById('apply-filter-btn').addEventListener('click', applyFilters);
