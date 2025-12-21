@@ -4326,6 +4326,20 @@ document.getElementById('my-orders-page').addEventListener('click', function(e) 
                 // 初始化分页
                 myOrdersPagination.init(myOrders);
                 
+                // === 添加：立即强制渲染 ===
+setTimeout(() => {
+    console.log('🔄 强制检查渲染状态...');
+    
+    const tableBody = document.getElementById('my-orders-table-body');
+    const hasContent = tableBody.innerHTML && 
+                      !tableBody.innerHTML.includes('正在加载') && 
+                      !tableBody.innerHTML.includes('暂无订单');
+    
+    if (!hasContent && myOrders.length > 0) {
+        console.log('检测到未渲染，手动渲染...');
+        renderMyOrdersTable(myOrders);
+    }
+}, 200);
                 // 如果没有订单，显示空状态
                 if (myOrders.length === 0) {
                     myOrdersTableBody.innerHTML = `
