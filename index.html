@@ -5451,6 +5451,109 @@ setTimeout(() => {
         }
 
         // ==================== Excel导出功能 ====================
+        function exportOrdersToExcel() {
+            if (orders.length === 0) {
+                showMessage('暂无订单数据可导出', 'warning');
+                return;
+            }
+
+            try {
+                // 准备数据
+                const worksheetData = orders.map(order => ({
+                    '订单号': order.orderId || order.id,
+                    '顾客姓名': order.customerName || '未提供',
+                    '顾客电话': order.customerPhone || '',
+                    '顾客邮箱': order.customerEmail || '',
+                    '街道地址': order.addressStreet || '',
+                    '城市': order.addressCity || '',
+                    '州属': order.addressState || '',
+                    '邮编': order.addressZip || '',
+                    '配送地区': order.shippingRegion === 'east' ? '东马' : '西马',
+                    '套餐类型': order.plan,
+                    '歌曲数量': order.songCount || 0,
+                    '套餐价格': `RM ${order.basePrice || 0}`,
+                    '配送费用': `RM ${order.shippingCost || 0}`,
+                    '总金额': `RM ${order.totalAmount || 0}`,
+                    '订单状态': getStatusText(order.status),
+                    '创建时间': order.createdAt,
+                    '更新时间': order.updatedAt || '',
+                    '备注': order.customerNote || ''
+                }));
+
+                // 创建工作表
+                const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+                
+                // 设置列宽
+                const colWidths = [
+                    { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 25 },
+                    { wch: 25 }, { wch: 12 }, { wch: 12 }, { wch: 8 },
+                    { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 12 },
+                    { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 20 },
+                    { wch: 20 }, { wch: 30 }
+                ];
+                worksheet['!cols'] = colWidths;
+                
+                // 创建工作簿
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "订单数据");
+                
+                // 添加统计工作表
+                const stats = calculateOrderStatistics(orders);
+                const statsWorksheet = XLSX.utils.json_to_sheet([
+                    { '统计项目': '订单总数', '数值': stats.totalOrders },
+                    { '统计项目': '总收入', '数值': `RM ${stats.totalRevenue.toFixed(2)}` },
+                    { '统计项目': '平均订单金额', '数值': `RM ${stats.averageOrderValue}` },
+                    { '统计项目': '总歌曲数量', '数值': stats.totalSongs },
+                    { '': '' },
+                    { '统计项目': '东马订单数', '数值': stats.ordersByRegion.east },
+                    { '统计项目': '西马订单数', '数值': stats.ordersByRegion.west },
+                    { '统计项目': '东马订单占比', '数值': `${stats.regionPercentage.east}%` },
+                    { '统计项目': '西马订单占比', '数值': `${stats.regionPercentage.west}%` }
+                ]);
+                XLSX.utils.book_append_sheet(workbook, statsWorksheet, "统计信息");
+                
+                // 生成文件名
+                const now = new Date();
+                const fileName = `订单数据_${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日.xlsx`;
+                
+                // 导出文件
+                XLSX.writeFile(workbook, fileName);
+                
+                showMessage(`订单数据已导出为: ${fileName}`, 'success');
+                
+            } catch (error) {
+                console.error('❌ 导出Excel失败:', error);
+                showMessage(`导出Excel失败: ${error.message}`, 'error');
+            }
+        }
+        
+        function calculateOrderStatistics(orders) {
+            const totalOrders = orders.length;
+            const totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.totalAmount) || 0), 0);
+            const averageOrderValue = totalOrders > 0 ? (totalRevenue / totalOrders).toFixed(2) : 0;
+            const totalSongs = orders.reduce((sum, order) => sum + (parseInt(order.songCount) || 0), 0);
+            
+            // 按地区统计
+            const ordersByRegion = {
+                east: orders.filter(order => order.shippingRegion === 'east').length,
+                west: orders.filter(order => order.shippingRegion === 'west').length
+            };
+            
+            const regionPercentage = {
+                east: totalOrders > 0 ? Math.round((ordersByRegion.east / totalOrders) * 100) : 0,
+                west: totalOrders > 0 ? Math.round((ordersByRegion.west / totalOrders) * 100) : 0
+            };
+            
+            return {
+                totalOrders,
+                totalRevenue,
+                averageOrderValue,
+                totalSongs,
+                ordersByRegion,
+                regionPercentage
+            };
+        }
+
         // ==================== 增强版Excel导出功能 ====================
 async function exportOrdersToExcelWithSongs() {
     if (orders.length === 0) {
